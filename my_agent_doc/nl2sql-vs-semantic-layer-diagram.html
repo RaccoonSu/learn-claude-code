@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NL2SQL vs 语义层 API · 架构对比</title>
+<style>
+  :root{
+    --bg:#f6f8fb;
+    --panel:#ffffff;
+    --ink:#1f2933;
+    --muted:#61707d;
+    --line:#e4e9ef;
+    --soft:#f0f4f8;
+    --red:#e5484d;      --red-bg:#fff5f5; --red-line:#fbd0d2; --red-soft:#fef0f1;
+    --green:#1f9d63;    --green-bg:#f1faf5; --green-line:#c2ecd2; --green-soft:#e8f7ee;
+    --blue:#2c7fd9;     --blue-bg:#f0f7fd; --blue-line:#cfe3f6;
+    --purple:#7c5ce0;   --purple-bg:#f6f3fe; --purple-line:#ddd2f7;
+    --amber:#c98a04;    --amber-bg:#fff8e8;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Segoe UI","Microsoft YaHei",sans-serif;
+    background:
+      radial-gradient(1200px 600px at 50% -10%, #ffffff 0%, transparent 60%),
+      var(--bg);
+    color:var(--ink);
+    min-height:100vh;
+    padding:48px 24px 64px;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1240px;margin:0 auto}
+
+  /* ---------- header ---------- */
+  .head{text-align:center;margin-bottom:40px}
+  .head h1{
+    font-size:30px;font-weight:700;letter-spacing:.5px;color:#1f2933;
+  }
+  .head .sub{margin-top:10px;color:var(--muted);font-size:14px}
+  .pill{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:600;margin:0 4px}
+  .pill.r{background:var(--red-bg);color:var(--red);border:1px solid var(--red-line)}
+  .pill.g{background:var(--green-bg);color:var(--green);border:1px solid var(--green-line)}
+
+  /* ---------- grid ---------- */
+  .grid{display:grid;grid-template-columns:1fr auto 1fr;gap:20px;align-items:stretch}
+
+  .panel{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:16px;
+    padding:26px 22px;
+    position:relative;
+    overflow:hidden;
+    box-shadow:0 1px 2px rgba(31,41,51,.04),0 8px 24px rgba(31,41,51,.05);
+  }
+  .panel.red{border-top:3px solid var(--red)}
+  .panel.green{border-top:3px solid var(--green)}
+
+  .ptitle{display:flex;align-items:center;gap:10px;margin-bottom:4px}
+  .ptitle .ic{width:28px;height:28px;border-radius:8px;display:grid;place-items:center;font-size:15px;font-weight:700}
+  .red .ic{background:var(--red-bg);color:var(--red)}
+  .green .ic{background:var(--green-bg);color:var(--green)}
+  .ptitle h2{font-size:18px;font-weight:700}
+  .ptag{font-size:12px;color:var(--muted);margin-bottom:18px;padding-left:38px}
+
+  /* ---------- flow nodes ---------- */
+  .node{
+    background:var(--soft);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:13px 15px;
+    margin:0 auto;
+    max-width:360px;
+    position:relative;
+  }
+  .node .k{font-size:12px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;margin-bottom:4px}
+  .node .v{font-size:13px;color:var(--muted);line-height:1.55}
+  .node .v b{color:var(--ink);font-weight:600}
+  .node .q{color:var(--purple);font-style:italic}
+
+  .node.start{border-color:var(--purple-line);background:var(--purple-bg)}
+  .node.start .k{color:var(--purple)}
+  .node.danger{border-color:var(--red-line);background:var(--red-soft)}
+  .node.danger .k{color:var(--red)}
+  .node.safe{border-color:var(--green-line);background:var(--green-soft)}
+  .node.safe .k{color:var(--green)}
+  .node.info{border-color:var(--blue-line);background:var(--blue-bg)}
+  .node.info .k{color:var(--blue)}
+  .node.warehouse{border-color:var(--blue-line);background:#fbfdff}
+
+  code, .mono{font-family:"JetBrains Mono","SF Mono",Consolas,monospace;font-size:12px;color:#1f9d63;background:rgba(31,157,99,.12);padding:1px 6px;border-radius:4px}
+  .red code{color:#c43438;background:rgba(229,72,77,.10)}
+
+  /* ---------- arrows ---------- */
+  .arrow{
+    display:flex;justify-content:center;align-items:center;
+    height:30px;color:#aeb9c4;font-size:18px;
+  }
+
+  /* ---------- central VS ---------- */
+  .vs{
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:14px;
+  }
+  .vs .badge{
+    width:46px;height:46px;border-radius:50%;
+    background:linear-gradient(135deg,#ffffff,#f0f4f8);
+    border:1px solid var(--line);
+    display:grid;place-items:center;
+    font-weight:800;font-size:14px;color:var(--amber);
+    box-shadow:0 0 0 4px rgba(31,41,51,.04),0 4px 10px rgba(31,41,51,.06);
+  }
+  .vs .line{width:1px;flex:1;background:linear-gradient(180deg,transparent,var(--line),transparent);min-height:60px}
+
+  /* ---------- footer bullets ---------- */
+  .bullets{margin-top:20px;display:flex;flex-direction:column;gap:9px}
+  .b{display:flex;gap:10px;align-items:flex-start;font-size:13px;line-height:1.55;color:#3a4753}
+  .b .m{flex-shrink:0;width:18px;height:18px;border-radius:5px;display:grid;place-items:center;font-size:11px;font-weight:800;margin-top:1px}
+  .b.x .m{background:var(--red-bg);color:var(--red)}
+  .b.c .m{background:var(--green-bg);color:var(--green)}
+
+  /* ---------- bottom takeaway ---------- */
+  .take{
+    margin-top:40px;
+    background:var(--amber-bg);
+    border:1px solid #f2e2b8;
+    border-radius:14px;padding:22px 26px;
+    display:grid;grid-template-columns:auto 1fr;gap:18px;align-items:center;
+  }
+  .take .ic{font-size:24px}
+  .take .t{font-size:14px;line-height:1.7;color:#5a4a23}
+  .take .t b{color:var(--amber)}
+
+  @media(max-width:860px){
+    .grid{grid-template-columns:1fr}
+    .vs{flex-direction:row;padding:6px 0}
+    .vs .line{height:1px;width:auto;min-height:0;min-width:30px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="head">
+    <h1>NL2SQL <span style="color:#9aa6b2;font-weight:400">vs</span> 语义层 API</h1>
+    <div class="sub">让 AI Agent / 业务用户访问企业数据的两条路径 · 架构与可信度对比</div>
+    <div style="margin-top:12px">
+      <span class="pill r">⚡ 直接路径 · 灵活但不可控</span>
+      <span class="pill g">🛡 治理路径 · 受控但需建模</span>
+    </div>
+  </div>
+
+  <div class="grid">
+
+    <!-- ============ LEFT: NL2SQL ============ -->
+    <div class="panel red">
+      <div class="ptitle"><div class="ic">⚡</div><h2>NL2SQL 架构</h2></div>
+      <div class="ptag">直接路径 · LLM 即信任锚点</div>
+
+      <div class="node start">
+        <div class="k">用户 / AI Agent</div>
+        <div class="v">自然语言查询　<span class="q">"上月 GMV 是多少？"</span></div>
+      </div>
+      <div class="arrow">▼</div>
+
+      <div class="node danger">
+        <div class="k">LLM 生成 SQL（黑盒）</div>
+        <div class="v"><code>SELECT SUM(amount) FROM orders<br>WHERE created_at BETWEEN ...</code></div>
+      </div>
+      <div class="arrow">▼</div>
+
+      <div class="node danger">
+        <div class="k">直接执行 SQL</div>
+        <div class="v">无中间校验 · <b>裸查询</b></div>
+      </div>
+      <div class="arrow">▼</div>
+
+      <div class="node warehouse">
+        <div class="k" style="color:#2c7fd9">数据仓库</div>
+        <div class="v">BigQuery / Snowflake / …</div>
+      </div>
+
+      <div class="bullets">
+        <div class="b x"><div class="m">✕</div><div>SQL 一次性生成，<b>无语义校验</b>，结果不可复现</div></div>
+        <div class="b x"><div class="m">✕</div><div>指标定义分散在 prompt / BI 工具中，<b>无单一事实来源</b></div></div>
+        <div class="b x"><div class="m">✕</div><div>LLM 可能<b>绕过权限意图</b>（SQL 注入、越权查表）</div></div>
+        <div class="b x"><div class="m">!</div><div>失败<b>静默且可信</b>——错误数字可能流入汇报无人察觉</div></div>
+      </div>
+    </div>
+
+    <!-- ============ CENTER VS ============ -->
+    <div class="vs">
+      <div class="line"></div>
+      <div class="badge">VS</div>
+      <div class="line"></div>
+    </div>
+
+    <!-- ============ RIGHT: Semantic Layer ============ -->
+    <div class="panel green">
+      <div class="ptitle"><div class="ic">🛡</div><h2>语义层 API 架构</h2></div>
+      <div class="ptag">治理路径 · 语义模型即信任锚点</div>
+
+      <div class="node start">
+        <div class="k">用户 / AI Agent</div>
+        <div class="v">自然语言查询　<span class="q">"上月 GMV 是多少？"</span></div>
+      </div>
+      <div class="arrow">▼</div>
+
+      <div class="node info">
+        <div class="k">LLM 理解人话 → 结构化参数</div>
+        <div class="v">指标 · 维度 · 限定 · 排序 · limit<br><b>输出参数对象，不输出 SQL</b></div>
+      </div>
+      <div class="arrow">▼</div>
+
+      <div class="node safe">
+        <div class="k">语义层 Meta API</div>
+        <div class="v">结构化自省 · <code>discover_entities</code><br><code>execute_query</code> 路由至预定义指标 → <b>锚定性解析</b></div>
+      </div>
+
+      <div class="node safe" style="border-style:dashed;margin-top:10px">
+        <div class="k">统一语义模型（人工治理，一次定义）</div>
+        <div class="v">指标定义 · Join 关系 · 权限策略</div>
+      </div>
+      <div class="arrow">▼</div>
+
+      <div class="node safe">
+        <div class="k">生成受控查询</div>
+        <div class="v">经过校验 · <b>权限已应用</b></div>
+      </div>
+      <div class="arrow">▼</div>
+
+      <div class="node warehouse">
+        <div class="k" style="color:#2c7fd9">数据仓库</div>
+        <div class="v">BigQuery / Snowflake / …</div>
+      </div>
+
+      <div class="bullets">
+        <div class="b c"><div class="m">✓</div><div>指标与 Join 关系预定义，<b>同一问题始终一致</b></div></div>
+        <div class="b c"><div class="m">✓</div><div>Agent 通过 Meta API <b>结构化发现实体</b>，而非猜测表结构</div></div>
+        <div class="b c"><div class="m">✓</div><div>安全策略在语义层执行，<b>权限绕过攻击面大幅缩小</b></div></div>
+        <div class="b c"><div class="m">✓</div><div>失败<b>嘈杂</b>——越界 / 不可解析会报错并阻断传播</div></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ---------- takeaway ---------- -->
+  <div class="take">
+    <div class="ic">🎯</div>
+    <div class="t">
+      <b>核心权衡：</b>灵活性 ↔ 可信度。NL2SQL 实施快、灵活，适合 ad hoc / 小数据集 / 有人类复核；语义层准确、一致、安全、可治理，适合企业级 / 对外汇报 / 监管口径。
+      <b>两者互补而非互斥</b>——生产建议：语义层做治理边界 + 仓库原生 RLS 兜底 + NL2SQL 处理范围外长尾（配验证 agent）。
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

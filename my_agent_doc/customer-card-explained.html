@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>客商卡片工具 · 一分钟看懂自动出卡片</title>
+<style>
+  :root {
+    --bg: #f6f8fc; --bg-soft: #eef2f9; --card: #ffffff;
+    --ink: #0f1b3d; --ink-soft: #5a6585;
+    --brand: #2f5cff; --brand-2: #7a4dff;
+    --warn: #d98324; --green: #1a9f74; --orange: #d97706;
+    --red: #dc2626; --line: #e2e8f3;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", "Segoe UI", Helvetica, Arial, sans-serif;
+    background: radial-gradient(1200px 600px at 50% -10%, #ffffff 0%, var(--bg) 55%);
+    color: var(--ink); line-height: 1.7; -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 0 24px; }
+  section { padding: 84px 0; border-bottom: 1px solid var(--line); }
+  section:last-child { border-bottom: none; }
+  .eyebrow {
+    display: inline-block; font-size: 13px; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--brand); font-weight: 700; background: rgba(108,140,255,.12);
+    padding: 6px 14px; border-radius: 999px; border: 1px solid rgba(108,140,255,.3); margin-bottom: 22px;
+  }
+  h1 { font-size: clamp(36px, 6vw, 64px); line-height: 1.15; font-weight: 800; letter-spacing: -1px; }
+  h2 { font-size: clamp(26px, 3.5vw, 38px); line-height: 1.25; font-weight: 800; margin-bottom: 14px; letter-spacing: -.5px; }
+  h3 { font-size: 19px; font-weight: 700; margin-bottom: 8px; }
+  .lead { font-size: clamp(17px, 2.2vw, 21px); color: var(--ink-soft); margin-top: 22px; max-width: 800px; }
+  p { color: var(--ink-soft); }
+  .muted { color: var(--ink-soft); }
+  .accent { color: var(--ink); font-weight: 700; }
+  .hl { background: linear-gradient(180deg, transparent 60%, rgba(108,140,255,.35) 60%); padding: 0 2px; }
+  .head { max-width: 840px; }
+
+  .hero { min-height: 92vh; display: flex; align-items: center; }
+  .hero h1 .vs { color: var(--ink-soft); font-weight: 600; }
+  .hero .punch { color: var(--warn); }
+  .hero-meta { margin-top: 38px; display: flex; gap: 28px; flex-wrap: wrap; color: var(--ink-soft); font-size: 14px; }
+  .hero-meta span::before { content: "●"; color: var(--green); margin-right: 8px; }
+
+  /* 对比小卡 */
+  .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; margin-top: 44px; }
+  @media (max-width: 720px) { .pair { grid-template-columns: 1fr; } }
+  .pcard {
+    background: var(--card); border: 1px solid var(--line); border-radius: 18px;
+    padding: 30px 28px;
+    box-shadow: 0 1px 2px rgba(15,27,61,.04), 0 8px 24px -16px rgba(15,27,61,.12);
+  }
+  .pcard.bad  { border-top: 5px solid #d64a6f; background: linear-gradient(180deg, rgba(214,74,111,.06), var(--card) 40%); }
+  .pcard.good { border-top: 5px solid var(--green); background: linear-gradient(180deg, rgba(26,159,116,.07), var(--card) 40%); }
+  .pcard .ttl { font-size: 21px; font-weight: 800; margin-bottom: 10px; }
+  .pcard.bad .ttl  { color: #d64a6f; }
+  .pcard.good .ttl { color: var(--green); }
+  .pcard p { font-size: 14.5px; }
+  .text-blob { font-size: 12.5px; color: var(--ink-soft); background: var(--bg-soft); border:1px solid var(--line); border-radius:8px; padding:12px 14px; margin-top:12px; line-height:1.9; }
+  .pcard .tagline { font-size: 13.5px; font-weight: 700; margin-top: 16px; padding: 10px 14px; border-radius: 10px; }
+  .pcard.bad .tagline  { background: rgba(214,74,111,.10); color: #c2335a; }
+  .pcard.good .tagline { background: rgba(26,159,116,.12); color: #157a5b; }
+
+  /* 流程图 SVG */
+  .arch-svg { max-width: 800px; margin: 44px auto 0; }
+  .arch-svg svg { width: 100%; height: auto; display: block; }
+
+  /* 价值卡 */
+  .value-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 40px; }
+  @media (max-width: 820px) { .value-grid { grid-template-columns: 1fr; } }
+  .vcard {
+    background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 28px 24px;
+    box-shadow: 0 1px 2px rgba(15,27,61,.04), 0 8px 24px -16px rgba(15,27,61,.12);
+  }
+  .vcard .ico { font-size: 34px; }
+  .vcard h3 { font-size: 18px; margin: 14px 0 8px; }
+  .vcard p { font-size: 14.5px; }
+
+  /* ── 卡片样式（仿真） ── */
+  .card-block { margin-top: 30px; }
+  .card-block .bt { font-size: 13px; font-weight: 800; color: var(--brand); letter-spacing: 1px; margin-bottom: 14px; }
+  .metric-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  @media (max-width: 640px) { .metric-row { grid-template-columns: 1fr; } }
+  .mcard { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px;
+           box-shadow: 0 1px 2px rgba(15,27,61,.04), 0 8px 24px -16px rgba(15,27,61,.12); }
+  .mcard .mc-title { font-size: 12.5px; color: var(--ink-soft); }
+  .mcard .mc-price { font-size: 28px; font-weight: 800; color: var(--ink); line-height: 1.1; margin-top: 4px; }
+  .mcard .mc-price .u { font-size: 13px; color: var(--ink-soft); font-weight: 600; margin-left: 4px; }
+  .mcard .mc-label { font-size: 12px; color: var(--ink-soft); margin-top: 2px; }
+  .mcard .mc-metrics { display: flex; gap: 12px; margin-top: 10px; flex-wrap: wrap; }
+  .mcard .mc-met { font-size: 11.5px; color: var(--ink-soft); }
+  .mcard .mc-met .up { color: var(--red); font-weight: 700; }
+  .mcard .mc-met .down { color: var(--green); font-weight: 700; }
+  .mcard .mc-met .flat { color: var(--ink-soft); font-weight: 700; }
+  .cardimg { display:block; width:100%; height:auto; border:1px solid var(--line); border-radius:12px; box-shadow:0 1px 2px rgba(15,27,61,.05), 0 12px 30px -18px rgba(15,27,61,.16); }
+  .bubble .cardimg { margin-top: 12px; }
+
+  .showcase { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 20px 22px;
+              box-shadow: 0 1px 2px rgba(15,27,61,.04), 0 12px 30px -18px rgba(15,27,61,.16); margin-top: 14px; }
+  .sc-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .sc-name { font-size: 19px; font-weight: 800; color: var(--ink); }
+  .sc-badge { font-size: 11px; padding: 3px 10px; border-radius: 999px; background: rgba(26,159,116,.13); color: #157a5b; font-weight: 700; }
+  .sc-code { font-size: 12px; color: var(--ink-soft); }
+  .sc-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 14px 0; }
+  @media (max-width: 560px) { .sc-stats { grid-template-columns: repeat(2, 1fr); } }
+  .sc-stat { background: var(--bg-soft); border-radius: 10px; padding: 10px 8px; text-align: center; }
+  .sc-stat .v { font-size: 18px; font-weight: 800; color: var(--ink); }
+  .sc-stat .v .u { font-size: 11px; color: var(--ink-soft); font-weight: 600; }
+  .sc-stat .l { font-size: 11px; color: var(--ink-soft); margin-top: 2px; }
+  .sc-info { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 18px; font-size: 12.5px; margin: 8px 0 12px; }
+  @media (max-width: 560px) { .sc-info { grid-template-columns: 1fr; } }
+  .sc-info div { color: var(--ink); }
+  .sc-info .l { color: var(--ink-soft); margin-right: 6px; }
+  .sc-hd-title { font-size: 12px; color: var(--ink-soft); font-weight: 700; margin: 6px 0 2px; }
+  .sc-holder { display: flex; align-items: center; gap: 8px; font-size: 12.5px; padding: 4px 0; border-bottom: 1px dashed var(--line); }
+  .sc-holder:last-child { border-bottom: none; }
+  .sc-holder .name { color: var(--ink); min-width: 150px; }
+  .sc-holder.primary .name { color: var(--brand); font-weight: 800; }
+  .sc-holder .pct { font-weight: 700; color: var(--ink); min-width: 56px; }
+  .sc-holder.primary .pct { color: var(--brand); }
+  .sc-holder .role { font-size: 11px; color: var(--ink-soft); }
+
+  /* 对话气泡 */
+  .task-box { margin-top: 36px; background: var(--bg-soft); border: 1px dashed var(--line); border-radius: 14px; padding: 18px 22px; font-size: 16px; }
+  .task-box .who { color: var(--brand); font-weight: 700; }
+  .chat { display: flex; flex-direction: column; gap: 12px; margin-top: 26px; padding: 18px 16px; background: var(--bg-soft); border: 1px solid var(--line); border-radius: 14px; }
+  .bubble { max-width: 84%; padding: 10px 14px; border-radius: 16px; font-size: 14px; line-height: 1.6; }
+  .bubble .who { display: block; font-size: 11px; font-weight: 700; opacity: .65; margin-bottom: 3px; }
+  .bubble.user { align-self: flex-end; background: var(--brand); color: #fff; border-bottom-right-radius: 5px; }
+  .bubble.boss { align-self: flex-start; background: var(--card); border: 1px solid var(--line); color: var(--ink); border-bottom-left-radius: 5px; box-shadow: 0 1px 2px rgba(15,27,61,.05); }
+  .bubble.tool { align-self: flex-start; background: rgba(217,119,6,.08); border: 1px solid rgba(217,119,6,.28); color: var(--ink); border-bottom-left-radius: 5px; }
+  .bubble.done { align-self: flex-start; background: rgba(26,159,116,.12); border: 1px solid rgba(26,159,116,.32); color: var(--ink); border-bottom-left-radius: 5px; }
+  .bubble.with-card { max-width: 90%; }
+  .bubble.tool b { color: var(--orange); }
+  .bubble.done b { color: var(--green); }
+  .bubble.user b { color: #fff; }
+  .bubble.done .showcase { margin-top: 12px; }
+
+  .takeaway { margin-top: 34px; background: linear-gradient(135deg, rgba(108,140,255,.16), rgba(155,123,255,.10)); border: 1px solid rgba(108,140,255,.3); border-radius: 16px; padding: 24px 28px; font-size: clamp(16px, 2vw, 19px); }
+  .takeaway b { color: var(--warn); }
+
+  .finale { text-align: center; }
+  .finale h2 { font-size: clamp(28px, 4vw, 44px); }
+  .finale .quote { color: var(--ink); font-weight: 800; }
+  .finale .pic { margin: 34px auto 0; font-size: 38px; letter-spacing: 8px; }
+  .footer { text-align: center; color: var(--ink-soft); font-size: 13px; padding: 30px 0 50px; opacity: .6; }
+</style>
+</head>
+<body>
+
+<!-- ════ 第 1 屏 · 标题 ════ -->
+<section class="hero">
+  <div class="wrap">
+    <span class="eyebrow">一分钟看懂 · 客商卡片工具（CustomerCardRenderTools）</span>
+    <h1>
+      零散数据，<br>
+      <span class="punch">自动排成卡片。</span>
+    </h1>
+    <p class="lead">
+      看懂 <b class="accent">AI 风控官</b>的<b class="accent">客商卡片工具</b>：Agent 拿到一家客商的零散信息（经营指标、基本情况…），
+      就<span class="hl">自动排成一张张看得懂的卡片</span>——像股票 App 里的个股概览，直接渲染在回答里。无需技术背景。
+    </p>
+    <div class="hero-meta">
+      <span>面向非技术读者</span>
+      <span>阅读时间约 2 分钟</span>
+      <span>无代码术语</span>
+    </div>
+  </div>
+</section>
+
+<!-- ════ 第 2 屏 · 为什么需要 ════ -->
+<section>
+  <div class="wrap">
+    <div class="head">
+      <span class="eyebrow">第 1 步 · 先看为什么需要</span>
+      <h2>一段密密麻麻的文字，谁看得下去？</h2>
+      <p class="lead">客商信息查出来往往是一大段文字，重点混在里面、不好找。把它<b class="accent">自动排成卡片</b>——大数字、单位、涨跌、关键字段一目了然。</p>
+    </div>
+
+    <div class="pair">
+      <div class="pcard bad">
+        <div class="ttl">☹ 一段文字罗列</div>
+        <p>关键数字埋在长句里，得逐字找；多说少说几句，排版也乱。</p>
+        <div class="text-blob">
+          累计资金余额 2 亿元（同比↓）、累计利润额 1 亿元（同比↓）、利润率 5%（环比持平）、内控签约 2 亿元（同比↑5.16%、环比↓13.01%）……
+        </div>
+        <div class="tagline">重点埋在文字里 → 读不进去。</div>
+      </div>
+      <div class="pcard good">
+        <div class="ttl">☺ 自动排成卡片</div>
+        <p>同样的信息，排成结构化卡片：大数字 + 单位 + 涨跌箭头，<b style="color:var(--ink)">一眼抓住重点</b>。</p>
+        <div class="mcard" style="margin-top:14px;">
+          <div class="mc-title">内控签约（信用）</div>
+          <div class="mc-price">2<span class="u">亿元</span></div>
+          <div class="mc-label">客商经营指标</div>
+          <div class="mc-metrics">
+            <span class="mc-met">同比 <span class="up">↑ +5.16%</span></span>
+            <span class="mc-met">环比 <span class="down">↓ -13.01%</span></span>
+          </div>
+        </div>
+        <div class="tagline">结构化卡片 → 重点一眼清。</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════ 第 3 屏 · 工作流程图 ════ -->
+<section>
+  <div class="wrap">
+    <div class="head">
+      <span class="eyebrow">第 2 步 · 一张图看懂流程</span>
+      <h2>从"零散数据"，到"一张卡片"</h2>
+      <p class="lead">这个工具嵌在 Agent 身上——<b class="accent">Agent 一识别到要展示卡片，就自动调用它</b>。工具把零散字段清洗、按模板排成卡片配置，再嵌进回答。</p>
+    </div>
+
+    <div class="arch-svg">
+      <svg viewBox="0 0 786 250" font-family="system-ui, -apple-system, 'PingFang SC', sans-serif" role="img" aria-label="客商卡片工具流程图">
+        <defs>
+          <marker id="cG" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#94a3b8"/>
+          </marker>
+          <linearGradient id="chdr" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stop-color="#1e3a5f"/><stop offset="100%" stop-color="#2563eb"/>
+          </linearGradient>
+        </defs>
+
+        <rect width="786" height="330" fill="#fafbfc" rx="10"/>
+        <rect x="0" y="0" width="786" height="44" fill="url(#chdr)" rx="10"/>
+        <rect x="0" y="36" width="786" height="8" fill="url(#chdr)"/>
+        <text x="393" y="29" fill="#fff" font-size="15" font-weight="700" text-anchor="middle">卡片工具 · 零散数据，自动排成卡片</text>
+
+        <!-- ① 客商数据 -->
+        <rect x="24" y="74" width="156" height="142" rx="12" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
+        <text x="102" y="104" fill="#1e3a5f" font-size="13" font-weight="700" text-anchor="middle">① 零散数据</text>
+        <text x="102" y="130" fill="#475569" font-size="11" text-anchor="middle">名称 / 指标</text>
+        <text x="102" y="150" fill="#475569" font-size="11" text-anchor="middle">指标 / 基本情况</text>
+        <text x="102" y="184" fill="#2563eb" font-size="11" font-weight="700" text-anchor="middle">（零散字段）</text>
+
+        <line x1="180" y1="145" x2="216" y2="145" stroke="#94a3b8" stroke-width="2" marker-end="url(#cG)"/>
+
+        <!-- ② 归一化清洗（兜底） -->
+        <rect x="218" y="74" width="156" height="142" rx="12" fill="#fff7ed" stroke="#d97706" stroke-width="2.5"/>
+        <text x="296" y="112" fill="#92400e" font-size="13" font-weight="700" text-anchor="middle">② 归一化清洗</text>
+        <text x="296" y="134" fill="#92400e" font-size="10.5" text-anchor="middle">空值补「-」</text>
+        <text x="296" y="151" fill="#92400e" font-size="10.5" text-anchor="middle">方向/格式纠错</text>
+
+        <line x1="374" y1="145" x2="410" y2="145" stroke="#94a3b8" stroke-width="2" marker-end="url(#cG)"/>
+
+        <!-- ③ 卡片配置 -->
+        <rect x="412" y="74" width="156" height="142" rx="12" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
+        <text x="490" y="112" fill="#1e3a5f" font-size="13" font-weight="700" text-anchor="middle">③ 卡片配置</text>
+        <text x="490" y="134" fill="#475569" font-size="10.5" text-anchor="middle">按模板填好</text>
+        <text x="490" y="151" fill="#475569" font-size="10.5" text-anchor="middle">指标 / 基本信息</text>
+        <text x="490" y="184" fill="#94a3b8" font-size="10.5" text-anchor="middle">（结构化 JSON）</text>
+
+        <line x1="568" y1="145" x2="604" y2="145" stroke="#94a3b8" stroke-width="2" marker-end="url(#cG)"/>
+
+        <!-- ④ 嵌进回答 -->
+        <rect x="606" y="74" width="156" height="142" rx="12" fill="#ecfdf5" stroke="#16a34a" stroke-width="2"/>
+        <text x="684" y="112" fill="#166534" font-size="13" font-weight="700" text-anchor="middle">④ 嵌进回答</text>
+        <text x="684" y="138" fill="#16a34a" font-size="11" text-anchor="middle">返回卡片占位符</text>
+        <text x="684" y="160" fill="#475569" font-size="11" text-anchor="middle">前端识别后</text>
+        <text x="684" y="180" fill="#475569" font-size="11" text-anchor="middle">渲染成卡片</text>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<!-- ════ 第 4 屏 · 两种卡片 ════ -->
+<section>
+  <div class="wrap">
+    <div class="head">
+      <span class="eyebrow">第 3 步 · 它能排哪两种卡</span>
+      <h2>两种卡片，覆盖客商展示</h2>
+      <p class="lead">根据要展示的内容，工具自动选合适的卡片样式：一组<b class="accent">核心指标卡</b>，或一张更全的<b class="accent">企业名片</b>。</p>
+    </div>
+
+    <!-- ① 核心指标卡组 -->
+    <div class="card-block">
+      <div class="bt">① 核心指标卡组 — 资金、利润、利润率、签约等关键经营指标，各一张小卡</div>
+      <img class="cardimg" src="metric-card-img.png" alt="客商核心指标卡组">
+    </div>
+
+    <!-- ② 综合展示卡 -->
+    <div class="card-block">
+      <div class="bt">② 综合展示卡（企业名片）— 一张卡看全：企业概况 + 基本信息</div>
+      <img class="cardimg" src="tradeclient-card-img.png" alt="客商企业信息卡片">
+      <p class="muted" style="font-size:13px; margin-top:10px;">企业名、股票代码、简介、成立日期，加上客商编码、统一社会信用代码、法定代表人、实际控制人、地址等基本信息一张卡说清；关键字段（如实际控制人）自动高亮。</p>
+    </div>
+  </div>
+</section>
+
+<!-- ════ 第 5 屏 · 真实场景 ════ -->
+<section>
+  <div class="wrap">
+    <div class="head">
+      <span class="eyebrow">第 4 步 · 看一个真实场景</span>
+      <h2>"这家客商情况怎样？"，它怎么出卡？</h2>
+    </div>
+
+
+    <div class="chat">
+      <div class="bubble user"><span class="who">🙋 我</span>帮我看一下 XX 实业集团的基本情况。</div>
+
+      <div class="bubble boss"><span class="who">🤖 Agent</span>这是要看一家客商的概况——<b>识别到适合用卡片展示</b>，我自动调客商卡片工具：把名称、股票代码、简介、基本信息填进综合展示卡。</div>
+
+      <div class="bubble tool"><span class="who">🔧 客商卡片工具</span>归一化清洗（空值补「-」、关键字段高亮），生成卡片配置，返回卡片占位符。</div>
+
+      <div class="bubble done with-card">
+        <span class="who">🤖 Agent</span>
+        XX 新能源科技股份有限公司（300750，深交所创业板），主营动力电池、装机量全球第一，法定代表人与实际控制人均为曾毓群。概况如下：
+        <img class="cardimg" src="tradeclient-card-img.png" alt="客商企业信息卡片">
+      </div>
+    </div>
+
+    <div class="takeaway">
+      👀 关键就一句：你只说<b>想看哪家客商</b>；Agent 识别到适合用卡片就自动出卡，经营指标、企业概况、基本信息<b>一张卡看全</b>——字段缺了错了也有兜底，卡片总渲染得出来。
+    </div>
+  </div>
+</section>
+
+<!-- ════ 第 6 屏 · 业务价值 ════ -->
+<section>
+  <div class="wrap">
+    <div class="head">
+      <span class="eyebrow">第 5 步 · 这件事为什么重要</span>
+      <h2>对你的业务，意味着什么？</h2>
+      <p class="lead">卡片工具让客商信息从"一大段文字"变成"<b class="accent">一眼能懂的卡片</b>"——风控、审批、汇报都能直接用。</p>
+    </div>
+
+    <div class="value-grid">
+      <div class="vcard">
+        <div class="ico">📇</div>
+        <h3>一眼看清重点</h3>
+        <p>大数字、单位、涨跌箭头、实际控制人，关键信息一眼到位，不用逐字读长文。</p>
+      </div>
+      <div class="vcard">
+        <div class="ico">🧱</div>
+        <h3>排版稳定统一</h3>
+        <p>按固定模板排，不会因为模型多说少说几句就乱——对外汇报口径一致、专业。</p>
+      </div>
+      <div class="vcard">
+        <div class="ico">🛡️</div>
+        <h3>稳：缺了错了有兜底</h3>
+        <p>字段缺失、格式错误都会被清洗兜底，<b style="color:var(--ink)">卡片总渲染得出来</b>，不会画崩。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════ 收尾 ════ -->
+<section class="finale">
+  <div class="wrap">
+    <span class="eyebrow">总结</span>
+    <h2 class="quote">零散数据，自动排成卡片。</h2>
+    <p class="lead" style="margin: 18px auto 0;">Agent 识别到要展示客商，就自动出卡——<br>经营指标、企业概况、基本信息一张卡看全，缺了错了也有兜底。</p>
+    <div class="pic">📇 · 📊 · 🏛️ · 📈</div>
+  </div>
+</section>
+
+<div class="footer">客商卡片工具（CustomerCardRenderTools）· 面向非技术读者的图解 · AI 风控官</div>
+
+</body>
+</html>
