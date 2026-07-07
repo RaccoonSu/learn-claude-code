@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="swiss-grid">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AI Agent 架构全解析</title>
+<!-- fonts: system fonts for PDF compatibility, CDN for screen -->
+<link rel="stylesheet" href="assets/fonts.css" media="screen">
+<link rel="stylesheet" href="assets/base.css">
+<style>body{font-family:"PingFang SC","Microsoft YaHei","Noto Sans SC",sans-serif}
+h2.h2{font-size:64px!important}h4{font-size:24px!important}
+.lede{font-size:26px!important}p.dim,.dim{font-size:16px!important}
+.card p,.card .dim{font-size:16px!important}.tag{font-size:15px!important}
+.kicker{font-size:18px!important}</style>
+<link rel="stylesheet" id="theme-link" href="assets/themes/swiss-grid.css">
+<link rel="stylesheet" href="assets/animations/animations.css">
+<style>
+  .tag-row{display:flex;gap:8px;flex-wrap:wrap}
+  .flow-steps{font-family:'JetBrains Mono',monospace;font-size:13px;line-height:2.2}
+  .flow-steps .hl{color:var(--accent-3)}
+  .flow-steps .good{color:var(--good)}
+  .vs-bad{border-left:3px solid var(--bad)}
+  .vs-good{border-left:3px solid var(--good)}
+  .quote{font-size:clamp(17px,2.2vw,22px);font-style:italic;color:var(--accent-3)}
+  /* chat bubbles */
+  .chat{display:flex;flex-direction:column;gap:8px}
+  .bubble{max-width:88%;padding:8px 12px;border-radius:14px;font-size:13px;line-height:1.6}
+  .bubble .who{display:block;font-size:10px;font-weight:700;opacity:.6;margin-bottom:2px}
+  .bubble.user{align-self:flex-end;background:var(--surface);border:1px solid var(--border);color:var(--text-1);border-bottom-right-radius:4px}
+  .bubble.bot{align-self:flex-start;background:var(--surface);border:1px solid var(--border);color:var(--text-1);border-bottom-left-radius:4px}
+  .bubble.act{align-self:flex-start;background:rgba(217,119,6,.1);border:1px solid rgba(217,119,6,.3);color:var(--text-1);border-bottom-left-radius:4px}
+  .bubble.done{align-self:flex-start;background:rgba(26,159,116,.12);border:1px solid rgba(26,159,116,.3);color:var(--text-1);border-bottom-left-radius:4px}
+  .chat-end{align-self:center;font-size:11px;color:var(--text-3);border:1px dashed var(--border);border-radius:999px;padding:4px 12px;margin-top:2px}
+  .chat-dots{text-align:center;color:var(--accent-3);font-size:11px;letter-spacing:2px;padding:1px 0}
+  .briefing-row{display:flex;align-items:center;gap:6px;padding:3px 0;border-bottom:1px dashed rgba(26,159,116,.2);font-size:12px}
+  .briefing-row:last-child{border-bottom:none}
+  .br-note{font-size:11px;color:var(--text-2);margin-top:6px}
+  .deck-header span{font-size:24px;font-weight:700;letter-spacing:.04em}
+  @media print{
+    *{font-family:"PingFang SC","Microsoft YaHei","Helvetica Neue",sans-serif!important}
+    .slide{position:relative!important;opacity:1!important;transform:none!important;page-break-after:always;height:auto!important;min-height:100vh;display:flex!important;flex-direction:column;justify-content:center;padding:40px 60px}
+    .deck-header,.deck-footer,.progress-bar,.notes-overlay,.overview,.notes{display:none!important}
+    body{background:#fff!important}
+  }
+  /* architecture flow */
+  .arch-step{display:grid;grid-template-columns:18px 1fr;gap:10px}
+  .arch-rail{position:relative;display:flex;flex-direction:column;align-items:center}
+  .arch-rail::after{content:"";flex:1;width:2px;background:var(--border);min-height:6px}
+  .arch-step.last .arch-rail::after{display:none}
+  .arch-dot{width:10px;height:10px;border-radius:50%;margin-top:14px;flex-shrink:0;box-shadow:0 0 0 3px var(--bg)}
+  .arch-dot.r{background:#e0413f} .arch-dot.p{background:#7a4dff} .arch-dot.g{background:#12a06a} .arch-dot.gr{background:#94a3b8}
+  .arch-nd{border:1px solid var(--border);border-radius:6px;padding:6px 10px;margin-bottom:6px;font-size:12px;line-height:1.5}
+  .arch-nd.nd-risk{border-color:#f3c8c7;background:#fef6f6}.arch-nd.nd-risk .nk{color:var(--bad)}
+  .arch-nd.nd-brand{border-color:#ddd2f7;background:#faf8ff}.arch-nd.nd-brand .nk{color:var(--brand-2)}
+  .arch-nd.nd-safe{border-color:#bfe9d6;background:#f2fbf6}.arch-nd.nd-safe .nk{color:var(--good)}
+  .arch-nd.nd-db{border-color:var(--border);background:var(--surface)}
+  .arch-nd .nk{font-size:16px;font-weight:700}
+  .arch-nd .nv{font-size:13px;color:var(--text-2);margin-top:2px}
+  .arch-nd code{display:block;margin-top:3px;padding:3px 6px;border-radius:4px;background:rgba(0,0,0,.04);font-family:ui-monospace,monospace;font-size:12px}
+  .arch-flags{display:flex;flex-direction:column;gap:3px;margin-top:6px;padding-top:6px;border-top:1px solid var(--border)}
+  .arch-flag{font-size:13px;font-weight:600;display:flex;align-items:flex-start;gap:4px;line-height:1.5}
+  .arch-flag.bad{color:#e0413f} .arch-flag.good{color:#12a06a}
+</style>
+</head>
+<body data-themes="swiss-grid,corporate-clean,minimal-white,solarized-light,catppuccin-latte,blueprint" data-theme-base="assets/themes/">
+<div class="deck">
+
+<!-- ════════════════════════════════════════════  COVER  ═══════════════════════ -->
+<section class="slide center tc" data-title="Cover">
+  <div>
+    <p class="kicker">AI 风控官 · Agent 架构全解析</p>
+    <h1 class="h1 anim-fade-up" data-anim="fade-up">AI 风控官<br><span class="gradient-text">Agent 架构全解析</span></h1>
+    <p class="kicker" style="margin-top:12px">数据应用部 · 苏焕雄</p>
+    <p class="lede mt-m">Agent Loop · 主子Agent · Skill · 语义模型 · 图表工具 · 卡片工具</p>
+    <div class="deck-footer"><span class="dim2">Agent Architecture · 6 Topics</span><span class="slide-number" data-current="1" data-total="24"></span></div>
+  </div>
+  <div class="notes">今天给大家分享一下 <b>AI Agent 的架构设计</b>。一共讲六个模块：Agent Loop、主子Agent、Skill 技能、语义模型、图表工具、还有卡片工具。我们先从 <b>Agent Loop</b> 开始。</div>
+</section>
+
+<!-- ════════════════════════════════════════════  AGENT LOOP  ══════════════════ -->
+<!-- 2.1 Agent Loop - Hero -->
+<section class="slide center tc" data-title="Agent Loop · Hero">
+  <div class="deck-header"><span>AI 风控官 · Agent Loop</span></div>
+      <p class="kicker"> 01 · Agent LOOP 架构</p>
+
+  <div>
+    <h1 class="h1">传统 AI 助手会<span style="color:var(--text-3)">回答，</span><br>Agent 会<span style="color:var(--accent-3)">动手。</span></h1>
+  </div>
+  <div class="notes">我们先思考一个问题，传统 AI 助手（比如豆包）和 Agent（比如 AI 风控官、龙虾、还有开发常用的编程 agent） 到底有什么区别？——<b>传统 AI 助手它会回答用户的问题，但不会干活，而Agent 它会动手干活</b>。这是最核心的区别。下面我们看一个具体的例子。</div>
+<div class="deck-footer"><span class="dim2">数据应用部 · 苏焕雄</span><span class="slide-number" data-current="2" data-total="24"></span></div>
+</section>
+
+<!-- 2.2 Agent Loop - 区别对比 -->
+<section class="slide" data-title="Agent Loop · 区别">
+  <div class="deck-header"><span>AI 风控官 · Agent Loop</span></div>
+  <p class="kicker">第 1 步 · 先看清区别</p>
+  <h2 class="h2">同样一个问题，差别在哪？</h2>
+  <p class="lede" style="margin-bottom:12px">用户问："把这个月的销售订单汇总，找出销售额前三的产品，做成一份简报。"</p>
+  <div class="grid g2">
+    <!-- 传统 AI 助手 -->
+    <div class="card vs-bad" style="padding:14px 16px">
+      <h4 style="color:var(--bad);font-size:16px;margin-bottom:8px">☹ 传统 AI 助手</h4>
+      <div class="chat">
+        <div class="bubble user"><span class="who">🙋 我</span>把这个月的销售订单汇总，找出前三，做成简报。</div>
+        <div class="bubble bot"><span class="who">💬 传统 AI 助手</span>你可以这样：① 打开订单表；② 用透视表按产品汇总销售额；③ 排序后取前三。要不要我一步步教你？</div>
+        <div class="chat-end">🛑 对话到此结束 · 它给完建议就停了，在等用户去操作</div>
+      </div>
+      <p class="dim mt-s" style="font-size:11px">它会告诉用户"可以这样做"，但<b>不会替用户做</b>。表格得用户自己开，数据得用户自己算。</p>
+    </div>
+    <!-- AI Agent -->
+    <div class="card vs-good" style="padding:14px 16px">
+      <h4 style="color:var(--good);font-size:16px;margin-bottom:8px">☺ AI Agent</h4>
+      <div class="chat">
+        <div class="bubble user"><span class="who">🙋 我</span>把这个月的销售订单汇总，找出前三，做成简报。</div>
+        <div class="bubble act"><span class="who">🤖 Agent</span>打开订单表 → 读到 <b>823 条</b>订单</div>
+        <div class="bubble act"><span class="who">🤖 Agent</span>按产品汇总并排序 → 算出前三</div>
+        <div class="chat-dots">↑ 自己看结果、继续往下做 ↓</div>
+        <div class="bubble done">
+          <span class="who">🤖 Agent · 已生成本月销售简报</span>
+          <div style="margin-top:6px">
+            <div class="briefing-row">① 产品A <b>¥186 万</b><span style="margin-left:auto;font-size:10px;color:var(--good)">占 32%</span></div>
+            <div class="briefing-row">② 产品B <b>¥142 万</b><span style="margin-left:auto;font-size:10px;color:var(--good)">占 24%</span></div>
+            <div class="briefing-row">③ 产品C <b>¥98 万</b><span style="margin-left:auto;font-size:10px;color:var(--good)">占 17%</span></div>
+            <div class="br-note">📊 分析：前三合计占总额 <b>73%</b>，产品A 持续领跑，建议保库存、追加推广。</div>
+          </div>
+        </div>
+      </div>
+      <p class="dim mt-s" style="font-size:11px">用户只交代一次，它<b>自己查资料、跑流程、看结果、再继续</b>，直到把事办完。</p>
+    </div>
+  </div>
+  <div class="card mt-m" style="background:rgba(255,210,122,.06);border:1px solid var(--accent-3);padding:14px 18px">
+    💡 <b style="color:var(--accent-3)"></b>传统 AI 助手给完建议就走；Agent 是用户交代一次任务，它自己干到底、再交付。
+  </div>
+  <div class="notes">接下来我们看一个具体的案例：<b>传统 AI 助手给完建议就走，Agent 是说一次它自己干到底</b>。你看左边的传统AI，它就说你可以打开订单表、用透视表汇总、排序取前三，给完建议就停了，等你操作。右边的 Agent 呢？它自己打开订单表、读到八百多条订单，自己汇总排序，最后直接把简报交给你——前三各占多少、总占比、还给分析建议。全程你就说了一句话。所以 Agent 和 Chatbot 的本质区别就在于——一个给建议，一个出结果。那 Agent 是怎么做到自己干到底的？翻下一页看原理。</div>
+<div class="deck-footer"><span class="dim2">数据应用部 · 苏焕雄</span><span class="slide-number" data-current="3" data-total="24"></span></div>
+</section>
+
+<!-- 2.3 Agent Loop - 原理 SVG -->
+<section class="slide" data-title="Agent Loop · 原理">
+  <div class="deck-header"><span>AI 风控官 · Agent Loop</span></div>
+  <p class="kicker">第 2 步 · AGENT 核心架构</p>
+  <h2 class="h2" style="font-size:36px;margin-bottom:8px">所谓 Agent，本质就是一个"循环"</h2>
+  <div style="max-width:900px;width:100%;align-self:center">
+    <svg viewBox="0 0 720 540" style="width:100%;height:auto;display:block" font-family="system-ui, -apple-system, 'PingFang SC', sans-serif">
+      <defs>
+        <marker id="loop-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#555"/></marker>
+        <marker id="loop-arrow-blue" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#2563eb"/></marker>
+        <marker id="loop-arrow-green" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#16a34a"/></marker>
+        <linearGradient id="loop-hdr" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#1e3a5f"/><stop offset="100%" stop-color="#2563eb"/></linearGradient>
+      </defs>
+      <rect width="720" height="540" fill="#fafbfc" rx="10"/>
+      <rect x="0" y="0" width="720" height="48" fill="url(#loop-hdr)" rx="10"/>
+      <rect x="0" y="40" width="720" height="8" fill="url(#loop-hdr)"/>
+      <text x="360" y="31" fill="#fff" font-size="16" font-weight="700" text-anchor="middle">Agent Loop · 一个循环，让 AI 自己把事做完</text>
+      <rect x="60" y="80" width="160" height="52" rx="8" fill="#f0f4ff" stroke="#2563eb" stroke-width="2"/>
+      <text x="140" y="102" fill="#1e3a5f" font-size="13" font-weight="600" text-anchor="middle">用户交代任务</text>
+      <text x="140" y="120" fill="#64748b" font-size="11" text-anchor="middle">「做成销售简报」</text>
+      <line x1="140" y1="132" x2="140" y2="162" stroke="#2563eb" stroke-width="1.5" marker-end="url(#loop-arrow-blue)"/>
+      <rect x="60" y="164" width="160" height="48" rx="8" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="4,2"/>
+      <text x="140" y="185" fill="#334155" font-size="12" font-weight="500" text-anchor="middle">对话记录</text>
+      <text x="140" y="201" fill="#94a3b8" font-size="10" text-anchor="middle">一直累积，不丢上下文</text>
+      <line x1="220" y1="188" x2="288" y2="188" stroke="#555" stroke-width="1.5" marker-end="url(#loop-arrow)"/>
+      <rect x="290" y="140" width="180" height="96" rx="8" fill="#fff" stroke="#2563eb" stroke-width="2"/>
+      <text x="380" y="166" fill="#1e3a5f" font-size="14" font-weight="700" text-anchor="middle">大模型思考</text>
+      <line x1="310" y1="176" x2="450" y2="176" stroke="#e2e8f0" stroke-width="1"/>
+      <text x="380" y="194" fill="#475569" font-size="11" text-anchor="middle">阅读整段对话</text>
+      <text x="380" y="210" fill="#475569" font-size="11" text-anchor="middle">判断：要不要调用工具？</text>
+      <text x="380" y="228" fill="#64748b" font-size="10" text-anchor="middle">决定下一步动作</text>
+      <line x1="380" y1="236" x2="380" y2="276" stroke="#555" stroke-width="1.5" marker-end="url(#loop-arrow)"/>
+      <polygon points="380,280 470,316 380,352 290,316" fill="#fff8f0" stroke="#d97706" stroke-width="2"/>
+      <text x="380" y="312" fill="#92400e" font-size="12" font-weight="600" text-anchor="middle">要不要</text>
+      <text x="380" y="326" fill="#92400e" font-size="10" text-anchor="middle">调用工具？</text>
+      <line x1="470" y1="316" x2="540" y2="316" stroke="#16a34a" stroke-width="2" marker-end="url(#loop-arrow-green)"/>
+      <text x="505" y="308" fill="#16a34a" font-size="11" font-weight="600" text-anchor="middle">不要</text>
+      <rect x="542" y="294" width="130" height="44" rx="22" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>
+      <text x="607" y="312" fill="#166534" font-size="12" font-weight="600" text-anchor="middle">给出答复</text>
+      <text x="607" y="328" fill="#166534" font-size="10" text-anchor="middle">任务完成 · 结束</text>
+      <line x1="380" y1="352" x2="380" y2="392" stroke="#d97706" stroke-width="2" marker-end="url(#loop-arrow)"/>
+      <text x="395" y="376" fill="#d97706" font-size="11" font-weight="600">要</text>
+      <rect x="290" y="394" width="180" height="48" rx="8" fill="#fff7ed" stroke="#d97706" stroke-width="1.5"/>
+      <text x="380" y="415" fill="#92400e" font-size="12" font-weight="600" text-anchor="middle">调用工具</text>
+      <text x="380" y="432" fill="#92400e" font-size="10" text-anchor="middle">查数据 · 跑计算 · 看结果</text>
+      <path d="M 290 418 L 40 418 L 40 188 L 58 188" fill="none" stroke="#d97706" stroke-width="1.5" marker-end="url(#loop-arrow)" stroke-dasharray="6,3"/>
+      <text x="18" y="375" fill="#92400e" font-size="10" font-weight="500" transform="rotate(-90, 18, 375)">把结果记下来，接着想 —— 循环</text>
+      <rect x="60" y="462" width="600" height="56" rx="6" fill="#f1f5f9"/>
+      <text x="80" y="484" fill="#334155" font-size="11">核心：AI <tspan font-weight="700" fill="#1e3a5f">要调用工具</tspan> 就一直转圈，把结果记下来再想下一步；<tspan font-weight="700" fill="#16a34a">不要</tspan> 就说明干完了。</text>
+      <text x="80" y="504" fill="#64748b" font-size="10">这个"边做边想、做完才停"的循环，就是它能自己把事干到底的秘密。</text>
+    </svg>
+  </div>
+  <div class="notes">Agent 是怎么做到自己干到底的？秘密就在这张图。agent 进入循环后，它就只有两个状态——要调工具，和不需要调。你看菱形那里，要的话就去查数据跑计算看结果，记下来再想下一步，形成循环。不要就说明干完了，给答复。所以 Agent 底层逻辑很简单——<b>一个循环加一个工具，等于一个 Agent</b>。翻下一页看真实例子。</div>
+<div class="deck-footer"><span class="dim2">数据应用部 · 苏焕雄</span><span class="slide-number" data-current="4" data-total="24"></span></div>
+</section>
+
+<!-- 2.4 Agent Loop - 真实例子 + 价值 + 总结 -->
+<section class="slide" data-title="Agent Loop · 实战">
+  <div class="deck-header"><span>AI 风控官 · Agent Loop</span></div>
+  <p class="kicker">第 3 步 · 看真实例子</p>
+  <h2 class="h2">它在真实任务里是怎么"自己跑"的？</h2>
+  <div style="font-size:13px;color:var(--text-3);margin-bottom:12px">用户交代："把本月销售订单汇总，找出销售额前三，做成简报。"</div>
+  <div class="grid g2 mt-s">
+    <div>
+      <div class="stack">
+        <div class="card"><b>①</b> Agent 理解用户问题，决定先打开订单表。<br><span class="dim">"我要用工具" → 打开本月销售订单表</span></div>
+        <div class="card mt-s"><b>②</b> 看到数据：共 800 多条订单。<br><span class="dim">→ 自己决定下一步：按产品汇总并排序</span></div>
+        <div class="card mt-s"><b>③</b> Agent 再次动手，算出销售额、排出前三。<br><span class="dim">"我要用工具" → 执行：计算并排序</span></div>
+        <div class="card mt-s" style="border-color:var(--good)"><b>④</b> 看到结果，写成带结论的简报交给用户。<br><span class="dim">"我做完了" → 输出简报，循环结束</span></div>
+      </div>
+    </div>
+    <div>
+      <div class="card" style="border-left:3px solid var(--accent-3);margin-bottom:12px">
+        <h4>对我们的业务，意味着什么？</h4>
+        <div class="dim" style="font-size:13px;line-height:1.8">
+          🔄 <b>从"一问一答"到"一问到底"</b> —— 交代一次目标，它推进到完成<br>
+          🧩 <b>能自己拆解·执行·纠错</b> —— 遇到报错自己看、自己改、继续走<br>
+          🚀 <b>替代重复性劳动</b> —— 运维、报表、核查从"人做"变"Agent做"
+        </div>
+      </div>
+      <div class="quote">👀 全程用户只说了一句话。中间的打开表格、看数据、算排名、再决定，全是 Agent 自己完成的 —— 这就是Agent loop在起作用。</div>
+    </div>
+  </div>
+  <div class="notes">还是那个销售订单任务。Agent 第一步想了一下先打开订单表。第二步看到八百多条数据，自己决定要汇总排序。第三步再次动手计算排名。第四步看到结果写成简报交给你。四步下来全程一句话没多说。对业务来说：从"一问一答"升级到<b>"一问到底"</b>——Agent 能拆解、执行、纠错，不需要人传话。报表、核查、运维，从人做变 Agent 做。好，接下来看<b>主子 Agent 架构</b>。</div>
+<div class="deck-footer"><span class="dim2">数据应用部 · 苏焕雄</span><span class="slide-number" data-current="5" data-total="24"></span></div>
+</section>
+
+<!-- ════════════════════════════════════════════  主子AGENT  ═══════════════════ -->
+<!-- 3.1 主子Agent - Hero -->
+<section class="slide center tc" data-title="主子Agent · Hero">
+  <div class="deck-header"><span>AI 风控官 · 主子 Agent 架构</span></div>
+  <div>
+    <p class="kicker">02 · 主子 Agent 架构</p>
+    <h1 class="h1">大事拆小，<br><span style="color:var(--accent-3)">分域专家会诊。</span></h1>
+    <p class="lede mt-l">AI 怎么像一个专家委员会，让市场研判、经营分析、客商履约<br>各路专家分头研判、汇总结论。</p>
+  </div>
+  <div class="notes">好，第二个模块——<b>主子 Agent 架构</b>。核心思想很简单：大事拆小，像专家委员会一样分域会诊。</div>
+<div class="deck-footer"><span class="dim2">数据应用部 · 苏焕雄</span><span class="slide-number" data-current="6" data-total="24"></span></div>
+</section>
+
+<!-- 3.2 主子Agent - 为什么要拆 -->
+<section class="slide" data-title="主子Agent · 为什么拆">
+  <div class="deck-header"><span>AI 风控官 · 主子 Agent 架构</span></div>
+  <p class="kicker">第 1 步 · 先看为什么要拆</p>
+  <h2 class="h2">一个 AI 啥都管，为什么看不深、还健忘？</h2>
+  <p class="lede">让一个 AI 同时懂市场、懂经营、又懂履约，它的脑袋会被各种中间过程塞满——哪个领域都看不深，还会走神、忘记最初要研判什么。就像一个人想同时当三个专家，结果哪个都不精。</p>
+  <div class="grid g2 mt-m">
+    <div class="card vs-bad">
+      <h4 style="color:var(--bad)">☹ 一个 AI 全包</h4>
+      <p class="dim">市场、经营、履约全塞进同一个脑袋：读的数据、算的过程、试错的来回……越塞越满，每个域都只能浅尝辄止，还忘了目标。</p>
+      <div class="tag mt-s">记忆被占满 → 看不深、健忘、跑偏。</div>
+    </div>
+    <div class="card vs-good">
+      <h4 style="color:var(--good)">☺ 拆成分域专家</h4>
+      <p class="dim">每个领域交给一位专家，只盯自己那块、用自己的专业口径深挖。专家做完汇报研判结论，主管综合各方做判断。</p>
+      <div class="tag mt-s">各域深挖 + 主管汇总 → 看得深、看得全。</div>
+    </div>
+  </div>
+  <div class="notes">为什么要把事拆开？你想，让一个 AI 同时懂市场、懂经营、又懂履约，脑袋里要装的东西太多了——读的数据、算的过程、各种试错来回，塞得满满的。结果每个领域都只能浅尝辄止，还容易走神、忘了最初要研判什么。怎么办？<b>拆</b>！市场交给市场专家，经营交给经营专家，履约交给履约专家。每位专家只盯自己那块，用自己的专业口径深挖，做完只汇报结论。主管拿各方结论做综合判断。翻下一页看架构图。</div>
+<div class="deck-footer"><span class="dim2">数据应用部 · 苏焕雄</span><span class="slide-number" data-current="7" data-total="24"></span></div>
+</section>
+
+<!-- 3.3 主子Agent - 架构 SVG -->
+<section class="slide" data-title="主子Agent · 架构">
+  <div class="deck-header"><span>AI 风控官 · 主子 Agent 架构</span></div>
+  <p class="kicker">第 2 步 · 一张图看懂架构</p>
+  <h2 class="h2" style="font-size:36px;margin-bottom:8px">统筹派活，分域专家研判，汇报结论</h2>
+  <div style="max-width:900px;width:100%;align-self:center">
+    <svg viewBox="0 0 720 400" style="width:100%;height:auto;display:block" font-family="system-ui, -apple-system, 'PingFang SC', sans-serif">
+      <defs>
+        <marker id="sub-aB" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#2563eb"/></marker>
+        <marker id="sub-aO" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#d97706"/></marker>
+        <linearGradient id="sub-hdr" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#1e3a5f"/><stop offset="100%" stop-color="#2563eb"/></linearGradient>
+      </defs>
+      <rect width="720" height="400" fill="#fafbfc" rx="10"/>
+      <rect x="0" y="0" width="720" height="44" fill="url(#sub-hdr)" rx="10"/>
+      <rect x="0" y="36" width="720" height="8" fill="url(#sub-hdr)"/>
+      <text x="360" y="29" fill="#fff" font-size="15" font-weight="700" text-anchor="middle">主子 Agent 架构 · 统筹派活，专家分域研判，汇报结论</text>
+      <rect x="250" y="66" width="220" height="70" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
+      <text x="360" y="92" fill="#1e3a5f" font-size="15" font-weight="700" text-anchor="middle">统筹（主 Agent）</text>
+      <text x="360" y="111" fill="#475569" font-size="11" text-anchor="middle">派活给各域专家 · 汇总结论</text>
+      <line x1="318" y1="136" x2="318" y2="186" stroke="#2563eb" stroke-width="2" marker-end="url(#sub-aB)"/>
+      <text x="262" y="166" fill="#2563eb" font-size="11" font-weight="700">拆分任务</text>
+      <line x1="402" y1="186" x2="402" y2="136" stroke="#d97706" stroke-width="2" stroke-dasharray="6,4" marker-end="url(#sub-aO)"/>
+      <text x="412" y="166" fill="#d97706" font-size="11" font-weight="700">汇报结论</text>
+      <path d="M 120 190 L 600 190 M 120 190 L 120 206 M 360 190 L 360 206 M 600 190 L 600 206" fill="none" stroke="#94a3b8" stroke-width="1.5"/>
+      <rect x="45" y="206" width="150" height="92" rx="10" fill="#fff7ed" stroke="#d97706" stroke-width="1.8"/>
+      <text x="120" y="232" fill="#92400e" font-size="13" font-weight="700" text-anchor="middle">市场研判专家</text>
+      <text x="120" y="249" fill="#b45309" font-size="10" text-anchor="middle">子 Agent · 独立研判</text>
+      <text x="120" y="273" fill="#92400e" font-size="11" text-anchor="middle">分析市场价格</text>
+      <rect x="285" y="206" width="150" height="92" rx="10" fill="#fff7ed" stroke="#d97706" stroke-width="1.8"/>
+      <text x="360" y="232" fill="#92400e" font-size="13" font-weight="700" text-anchor="middle">经营分析专家</text>
+      <text x="360" y="249" fill="#b45309" font-size="10" text-anchor="middle">子 Agent · 独立研判</text>
+      <text x="360" y="273" fill="#92400e" font-size="11" text-anchor="middle">分析内部经营数据</text>
+      <rect x="525" y="206" width="150" height="92" rx="10" fill="#fff7ed" stroke="#d97706" stroke-width="1.8"/>
+      <text x="600" y="232" fill="#92400e" font-size="13" font-weight="700" text-anchor="middle">客商履约专家</text>
+      <text x="600" y="249" fill="#b45309" font-size="10" text-anchor="middle">子 Agent · 独立研判</text>
+      <text x="600" y="273" fill="#92400e" font-size="11" text-anchor="middle">分析客户履约情况和风险</text>
+      <rect x="45" y="326" width="630" height="54" rx="8" fill="#f1f5f9"/>
+      <text x="65" y="349" fill="#334155" font-size="11.5">各域专家在各自擅长的领域分析；做完只把<tspan font-weight="700" fill="#1e3a5f">该域结论</tspan>交回统筹。</text>
+    </svg>
+  </div>
+  <div class="notes">看图。最上面是<b>统筹——主 Agent</b>，派活和汇总结论。下面三位子 Agent：市场研判专家分析市场价格，经营分析专家分析内部经营数据，客商履约专家分析客户履约情况和风险。蓝色箭头往下是拆分任务，橙色虚线往上是汇报结论。每位专家在自己擅长的领域独立研判，做完<b>只把该领域的结论交回统筹</b>，中间过程全部丢弃。翻下一页看两个关键设计。</div>
+<div class="deck-footer"><span class="dim2">数据应用部 · 苏焕雄</span><span class="slide-number" data-current="8" data-total="24"></span></div>
+</section>
+
+<!-- 3.4 主子Agent - 两个关键设计 + 实战 -->
+<section class="slide" data-title="主子Agent · 关键设计">
+  <div class="deck-header"><span>AI 风控官 · 主子 Agent 架构</span></div>
+  <p class="kicker">第 3 步 · 为什么这样设计 + 实战</p>
+  <h2 class="h2">两个关键设计，让它真的像个专家委员会</h2>
+  <div class="grid g2 mt-m">
+    <div class="card card-accent">
+      <h4>🧠 子Agent 独立上下文空间</h4>
+      <p class="dim" style="font-size:13px">每位子Agent 有独立的上下文空间和专业口径，互不干扰。市场专家和履约专家各自研判，数据不共享。</p>
+      <span class="tag mt-s">独立上下文空间 互不干扰 独立研判</span>
+    </div>
+    <div class="card card-accent">
+      <h4>📋 主Agent 与子Agent 上下文隔离</h4>
+      <p class="dim" style="font-size:13px">子Agent 研判完只把结论交回统筹，中间数据全部清除。主Agent 上下文不受子Agent 过程污染。</p>
+      <span class="tag mt-s">主子之间上下文隔离 仅保留关键结论 </span>
+    </div>
+  </div>
+  <p class="kicker mt-m" style="margin-bottom:6px">案例："研判本季度经营状况"</p>
+  <div class="chat" style="max-width:680px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px 16px">
+    <div class="bubble user" style="max-width:75%"><span class="who">🙋 用户</span>研判本季度整体经营状况，给出综合判断和风险提示。</div>
+    <div class="bubble bot" style="max-width:75%"><span class="who">🧑‍💼 统筹（主 Agent）</span>收到。请市场研判专家分析外部市场与竞争态势，请经营分析专家分析内部经营数据，请客商履约专家分析客户履约情况和风险。</div>
+    <div class="bubble act" style="max-width:70%"><span class="who">📨 市场研判专家</span>行业需求收缩，价格战加剧 → <b>外部承压</b></div>
+    <div class="bubble act" style="max-width:70%"><span class="who">📨 经营分析专家</span>营收增长但毛利下滑，成本上升 → <b>增收不增利</b></div>
+    <div class="bubble act" style="max-width:70%"><span class="who">📨 客商履约专家</span>履约整体正常，某大客户回款逾期 → <b>局部回款风险</b></div>
+    <div class="bubble done" style="max-width:75%"><span class="who">🧑‍💼 统筹</span>综合三方：<b>「外部承压下的增收不增利」</b>，建议控成本、盯回款、守份额。</div>
+  </div>
+  <div class="notes">两个关键设计。第一，<b>子Agent 独立上下文空间</b>——每位专家有独立的上下文和专业口径，互不干扰，独立研判。第二，<b>主Agent 与子Agent 上下文隔离</b>——子Agent 只回结论，仅保留关键结论，中间数据全部清除，主 agent上下文不受污染。看下面案例：用户说研判本季度经营状况，统筹派给三位专家。市场研判专家回报外部承压，经营分析专家回报增收不增利，客商履约专家回报局部回款风险。统筹综合三方得出最终判断——外部承压下的增收不增利，建议控成本、盯回款、守份额。好，接下来讲<b>Skill 技能</b>。</div>
+<div class="deck-footer"><span class="dim2">数据应用部 · 苏焕雄</span><span class="slide-number" data-current="9" data-total="24"></span></div>
+</section>
+
+<!-- ════════════════════════════════════════════  SKILL  ═══════════════════════ -->
+<!-- 4.1 Skill - Hero -->
+<section class="slide center tc" data-title="Skill · Hero">
+  <div class="deck-header"><span>AI 风控官 · Skill 技能</span></div>
+  <div>
+    <p class="kicker"> 03 · Skill 技能</p>
+    <h1 class="h1">先给目录，<br><span style="color:var(--accent-3)">用到哪个加载哪个。</span></h1>
+    <p class="lede mt-l">Skill 是标准化能力模块，采用<b>渐进式加载</b>：<br>启动时仅加载目录索引，运行时按需激活对应 Skill，未使用的 Skill 不进入上下文窗口。</p>
+  </div>
+  <div class="notes">第三个模块——<b>Skill 技能</b>。Skill 是可复用的标准化指令模块。核心设计理念是<b>渐进式加载</b>：启动时仅加载目录索引，运行时按需激活对应 Skill，未使用的 Skill 不进入上下文窗口。为什么要这样设计？翻下一页。</div>
+<div class="deck-footer"><span class="dim2">数据应用部 · 苏焕雄</span><span class="slide-number" data-current="10" data-total="24"></span></div>
+</section>
+
+<!-- 4.2 Skill - 为什么 -->
+<section class="slide" data-title="Skill · 为什么">
+  <div class="deck-header"><span>AI 风控官 · Skill 技能</span></div>
+  <p class="kicker">第 1 步 · 先搞懂一件事</p>
+  <h2 class="h2">大模型没有记忆，每次都得重新教</h2>
+  <p class="lede">大模型本身没有任何记忆，每次请求对它都是全新的开始，上次聊过什么、用户教过它怎么做，它一概不记得。所以想让它按某套口径办事，每次都得把"怎么做"重新告诉它一遍。</p>
+  <div class="grid g2 mt-m">
+    <div class="card vs-bad">
+      <h4 style="color:var(--bad)">☹ 全量加载：每次都把所有 Skill 塞进上下文</h4>
+      <p class="dim" style="font-size:12px">既然每次都要带，那就全带？用户只查经营指标，却把风险监控、库存分析、签约数据全部加载进上下文——响应慢，Token 消耗大，还容易幻觉。</p>
+      <div class="tag mt-s">全部 Skill 随请求发送 → 又慢又贵又容易幻觉</div>
+    </div>
+    <div class="card vs-good">
+      <h4 style="color:var(--good)">☺ 渐进式加载：先给目录，用到才激活</h4>
+      <p class="dim" style="font-size:12px">请求只带一份轻量目录索引。专家判断"这次分析经营指标"，只激活《财务重点经营指标分析》——只加载1个Skill，其余不进上下文。</p>
+      <div class="tag mt-s">用到才加载 → 省 Token、不占上下文、更不容易幻觉</div>
+    </div>
+  </div>
+  <p class="dim" style="font-size:14px;margin-top:12px">Skill 就是把"怎么做"沉淀为可复用的指令模块，按需加载到上下文。以经营分析专家为例，它关联了 4 个 Skill：《财务重点经营指标分析》《风险重点监控指标分析》《库存分析》《签约数据分析》。</p>
+  <div class="notes">先搞懂一件事：<b>大模型本身没有任何记忆</b>，每次请求对它都是全新的开始，上次聊过什么、教过它怎么做，它一概不记得。所以想让它按某套口径办事，每次都得把"怎么做"重新告诉它。Skill 就是把规程沉淀为可复用的指令模块。但不能每次都把所有 Skill 全加载——左边笨办法，只查经营指标却把风险监控、库存、签约全带进上下文，响应慢又容易幻觉。右边渐进式加载：先只给目录索引，很轻；专家判断是经营指标分析，只激活《财务重点经营指标分析》，其余 Skill 不进上下文。<b>用到才加载，用不到的绝不带</b>——省成本、不占上下文，也更不容易幻觉。翻下一页看架构图。</div>
+<div class="deck-footer"><span class="dim2">数据应用部 · 苏焕雄</span><span class="slide-number" data-current="11" data-total="24"></span></div>
+</section>
+
+<!-- 4.3 Skill - 架构 SVG -->
+<section class="slide" data-title="Skill · 架构">
+  <div class="deck-header"><span>AI 风控官 · Skill 技能</span></div>
+  <p class="kicker">第 2 步 · 一张图看懂</p>
+  <h2 class="h2" style="font-size:36px;margin-bottom:8px">先给目录，按需加载</h2>
+  <div style="max-width:900px;width:100%;align-self:center">
+    <svg viewBox="0 0 720 400" style="width:100%;height:auto;display:block" font-family="system-ui, -apple-system, 'PingFang SC', sans-serif">
+      <defs>
+        <linearGradient id="skill-hdr" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#1e3a5f"/><stop offset="100%" stop-color="#2563eb"/></linearGradient>
+      </defs>
+      <rect width="720" height="400" fill="#fafbfc" rx="10"/>
+      <rect x="0" y="0" width="720" height="44" fill="url(#skill-hdr)" rx="10"/>
+      <rect x="0" y="36" width="720" height="8" fill="url(#skill-hdr)"/>
+      <text x="360" y="29" fill="#fff" font-size="15" font-weight="700" text-anchor="middle">技能（Skill）· 先给目录，按需加载</text>
+      <rect x="40" y="110" width="180" height="150" rx="12" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
+      <text x="130" y="146" fill="#1e3a5f" font-size="15" font-weight="700" text-anchor="middle">经营分析专家</text>
+      <text x="130" y="168" fill="#475569" font-size="11.5" text-anchor="middle">关联 4 个 Skill</text>
+      <text x="130" y="194" fill="#64748b" font-size="11" text-anchor="middle">用到哪个</text>
+      <text x="130" y="212" fill="#64748b" font-size="11" text-anchor="middle">加载哪个</text>
+      <text x="130" y="236" fill="#94a3b8" font-size="10.5" text-anchor="middle">（其余不加载）</text>
+      <rect x="256" y="86" width="200" height="104" rx="10" fill="#fff7ed" stroke="#d97706" stroke-width="2"/>
+      <rect x="256" y="86" width="6" height="104" rx="3" fill="#d97706"/>
+      <text x="360" y="110" fill="#92400e" font-size="12" font-weight="700" text-anchor="middle">财务重点经营指标分析</text>
+      <text x="360" y="128" fill="#d97706" font-size="10.5" font-weight="700" text-anchor="middle">已激活 · ✓ 已加载</text>
+      <text x="360" y="150" fill="#92400e" font-size="10.5" text-anchor="middle">· 收入 / 毛利 / 费用率</text>
+      <text x="360" y="168" fill="#92400e" font-size="10.5" text-anchor="middle">· 同比 + 环比，圈异动</text>
+      <rect x="472" y="86" width="200" height="104" rx="10" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1.5"/>
+      <text x="572" y="132" fill="#94a3b8" font-size="12" font-weight="600" text-anchor="middle">风险重点监控指标分析</text>
+      <text x="572" y="154" fill="#cbd5e1" font-size="10.5" text-anchor="middle">未加载</text>
+      <rect x="256" y="206" width="200" height="104" rx="10" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1.5"/>
+      <text x="356" y="252" fill="#94a3b8" font-size="12" font-weight="600" text-anchor="middle">库存分析</text>
+      <text x="356" y="274" fill="#cbd5e1" font-size="10.5" text-anchor="middle">未加载</text>
+      <rect x="472" y="206" width="200" height="104" rx="10" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1.5"/>
+      <text x="572" y="252" fill="#94a3b8" font-size="12" font-weight="600" text-anchor="middle">签约数据分析</text>
+      <text x="572" y="274" fill="#cbd5e1" font-size="10.5" text-anchor="middle">未加载</text>
+      <rect x="40" y="332" width="640" height="50" rx="8" fill="#f1f5f9"/>
+      <text x="60" y="354" fill="#334155" font-size="11.5">只有用到的 Skill 被激活加载，其余 3 个不进上下文——</text>
+      <text x="60" y="372" fill="#334155" font-size="11.5"><tspan font-weight="700" fill="#1a9f74">省成本、不占上下文，也更不容易幻觉</tspan>。</text>
+    </svg>
+  </div>
+  <div class="notes">看图。左边是经营分析专家，关联 4 个 Skill。右边只有左上角《财务重点经营指标分析》被激活加载，橙色边框标记。其余三个全部灰色未加载。核心就是<b>按需加载</b>——只有用到的才进上下文，其余全程不进。省成本不占上下文，更不容易幻觉。翻下一页看真实场景。</div>
+<div class="deck-footer"><span class="dim2">数据应用部 · 苏焕雄</span><span class="slide-number" data-current="12" data-total="24"></span></div>
+</section>
+
+<!-- 4.4 Skill - 实战 + 价值 + 总结 -->
+<section class="slide" data-title="Skill · 实战">
+  <div class="deck-header"><span>AI 风控官 · Skill 技能</span></div>
+  <p class="kicker">第 3 步 · 实战 + 业务价值</p>
+  <h2 class="h2">经营分析专家怎么用 Skill？</h2>
+  <div style="font-size:13px;color:var(--text-3);margin-bottom:12px">用户交代："分析一下本月重点经营指标。"</div>
+  <div class="grid g2 mt-s">
+    <div class="card" style="padding:16px">
+      <h4 style="color:var(--accent-2);margin-bottom:8px">对话过程</h4>
+      <div style="font-size:12px;color:var(--text-2);line-height:1.9">
+        📊 这次分析经营指标，加载《财务重点经营指标分析》技能。<br>
+        <span style="color:var(--accent-3)">📖 技能加载 → 要点：①收入/毛利/费用率一起看 ②同比+环比对照 ③圈出异动指标。</span><br>
+        <span style="color:var(--good)">✅ 按技能分析完：收入同比 +X%，但毛利降、费用率升。结论：增收不增利。</span>
+      </div>
+      <div class="quote mt-s" style="font-size:14px">👀 专家只加载当下用得上的那一个 Skill，其余不进上下文。按需加载——既省成本，也不容易被无关内容干扰。</div>
+    </div>
+    <div>
+      <div class="card mb-s">
+        <h4>📚 规范自动遵守</h4>
+        <p class="dim" style="font-size:12px">每个领域的方法论拆成独立 Skill，专家按需加载，不用人每次提醒，质量更稳。</p>
+      </div>
+      <div class="card mb-s">
+        <h4>💰 按需加载，又省又准</h4>
+        <p class="dim" style="font-size:12px">不预加载无关 Skill，用到才激活。少了无关内容干扰——既更省，也更不容易跑偏胡编。</p>
+      </div>
+      <div class="card">
+        <h4>🔧 加 Skill 就能扩展</h4>
+        <p class="dim" style="font-size:12px">来个新规范？加一个 Skill 就行，不用动 AI 本身。Skill 越积越多，AI 越用越在行。</p>
+      </div>
+    </div>
+  </div>
+  <div class="notes">真实场景：用户说分析本月重点经营指标。经营分析专家判断这次是经营指标分析，激活《财务重点经营指标分析》Skill。Skill 包含三个要点：收入毛利费用率一起看、同比环比对照、圈出异动。分析完结论增收不增利。全程只激活一个 Skill。业务价值：<b>规范自动遵守</b>——方法论文档化为 Skill 指令，按需激活自动执行；<b>按需加载又省又准</b>——不预加载无关 Skill 少干扰；<b>加 Skill 就扩展</b>——新规范加一个 Skill 就行，不动 Agent 本身。好，接下来看<b>语义模型</b>。</div>
+<div class="deck-footer"><span class="dim2">数据应用部 · 苏焕雄</span><span class="slide-number" data-current="13" data-total="24"></span></div>
+</section>
+
+<!-- ════════════════════════════════════════════  语义模型  ═══════════════════ -->
+<!-- 5.1 语义模型 - Hero -->
+<section class="slide center tc" data-title="语义模型 · Hero">
+  <div class="deck-header"><span>AI 风控官 · 语义模型 vs 传统文生SQL</span></div>
+  <div>
+    <p class="kicker"> 04 · 语义模型 vs 传统文生SQL</p>
+    <h1 class="h1">两种架构，<br><span class="gradient-text">两种信任模型</span></h1>
+    <p class="lede mt-l">当 AI Agent / 业务用户需要访问企业数据时，有两种截然不同的技术路径：<br>一种让 LLM 直接生成 SQL 查数据库，另一种在数据之上构建统一的语义模型层。</p>
+  </div>
+  <div class="notes">第四个模块，一个更底层的话题——<b>语义模型和传统文生SQL的对比</b>。当 AI Agent 需要访问企业数据时，有两条截然不同的路。一条让 LLM 直接写 SQL，另一条在数据之上构建统一的语义模型层。这是两种完全不同的信任模型，接下来我们来看下架构原理。</div>
+<div class="deck-footer"><span class="dim2">数据应用部 · 苏焕雄</span><span class="slide-number" data-current="14" data-total="24"></span></div>
+</section>
+
+<!-- 5.2 语义模型 - 架构对比 -->
+<section class="slide" data-title="语义模型 · 架构对比">
+  <div class="deck-header"><span>AI 风控官 · 语义模型 vs 传统文生SQL</span></div>
+  <p class="kicker">第 1 层 · 架构原理</p>
+  <h2 class="h2">两种架构，两种信任模型</h2>
+  <div class="grid g2 mt-m" style="gap:16px">
+    <!-- 传统文生SQL -->
+    <div class="card vs-bad" style="padding:12px 14px">
+      <h4 style="color:var(--bad);font-size:14px;margin-bottom:8px">传统文生SQL 架构 · 直接路径</h4>
+      <div class="arch-step"><div class="arch-rail"><div class="arch-dot gr"></div></div><div class="arch-nd nd-db"><div class="nk">用户</div><div class="nv">"本月销售额前三的产品是哪些？"</div></div></div>
+      <div class="arch-step"><div class="arch-rail"></div><div class="arch-nd nd-brand"><div class="nk">LLM 生成 SQL（黑盒）<span style="font-size:10px;color:var(--orange);margin-left:4px">＋表结构/上下文</span></div><code>SELECT product, SUM(amount) FROM orders GROUP BY product ORDER BY 2 DESC LIMIT 3</code></div></div>
+      <div class="arch-step"><div class="arch-rail"></div><div class="arch-nd nd-risk"><div class="nk">直接执行 SQL</div><div class="nv">无中间核对 · LLM 理解偏了，结果就不符本意</div></div></div>
+      <div class="arch-step last"><div class="arch-rail"><div class="arch-dot gr"></div></div><div class="arch-nd nd-db"><div class="nk">数据仓库</div><div class="nv">MySQL / StarRocks</div></div></div>
+      <div class="arch-flags">
+        <div class="arch-flag bad">核心问题：LLM 生成的 SQL 语法正确但语义偏离预期，表 Join 关系容易混乱，结果"看起来对，实际答非所问"</div>
+        <div class="arch-flag bad">自然语言歧义 + 无语义校验，同一问题每次生成 SQL 可能不同，结果不可复现</div>
+        <div class="arch-flag bad">指标定义分散在 prompt / BI 工具中，无单一事实来源</div>
+        <div class="arch-flag bad">LLM 可能绕过权限意图（SQL 注入、越权查表）</div>
+      </div>
+    </div>
+    <!-- 语义模型 -->
+    <div class="card vs-good" style="padding:12px 14px">
+      <h4 style="color:var(--good);font-size:14px;margin-bottom:8px">语义模型架构 · 治理路径</h4>
+      <div class="arch-step"><div class="arch-rail"><div class="arch-dot gr"></div></div><div class="arch-nd nd-db"><div class="nk">用户</div><div class="nv">"本月销售额前三的产品是哪些？"</div></div></div>
+      <div class="arch-step"><div class="arch-rail"></div><div class="arch-nd nd-brand"><div class="nk">LLM 理解语义 → 结构化参数</div><div class="nv">拆成：用什么指标、按什么维度、怎么过滤　<b>只给参数，不写 SQL</b></div></div></div>
+      <div class="arch-step"><div class="arch-rail"></div><div class="arch-nd nd-safe"><div class="nk">语义层（统一指标 + 关系 + 权限）</div><div class="nv">按预定义指标把参数翻译成正确查询，<b>同一问题永远同一答案</b></div><div class="nv" style="font-size:10px;margin-top:4px;color:var(--good)">指标怎么算、表怎么连、谁能看什么 —— 都在这里定义</div></div></div>
+      <div class="arch-step"><div class="arch-rail"></div><div class="arch-nd nd-safe"><div class="nk">生成受控查询</div><div class="nv">按身份自动过滤 —— <b>能看什么数据，由权限说了算</b></div></div></div>
+      <div class="arch-step last"><div class="arch-rail"><div class="arch-dot gr"></div></div><div class="arch-nd nd-db"><div class="nk">数据仓库</div><div class="nv">MySQL / StarRocks</div></div></div>
+      <div class="arch-flags">
+        <div class="arch-flag good">指标与 Join 关系预先定义，同一问题始终返回一致结果</div>
+        <div class="arch-flag good">AI Agent 通过语义模型结构化发现实体，而非猜测表结构</div>
+        <div class="arch-flag good">安全策略在语义层执行，权限绕过的攻击面大幅缩小</div>
+      </div>
+    </div>
+  </div>
+  <div class="row mt-s" style="justify-content:center;gap:16px;font-size:11px;color:var(--text-2)">
+    <span><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:#94a3b8;margin-right:4px"></span>用户</span>
+    <span><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:#7a4dff;margin-right:4px"></span>LLM 组件</span>
+    <span><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:#e0413f;margin-right:4px"></span>风险步骤</span>
+    <span><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:#12a06a;margin-right:4px"></span>语义层组件</span>
+    <span><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:#94a3b8;margin-right:4px"></span>数据仓库</span>
+  </div>
+  <div class="notes">左边传统文生SQL，用户问"本月销售额前三的产品是哪些"，LLM 直接生成 SQL 去查数据库，中间没有核对。容易出现什么问题？意图跑偏、SQL 语法对但语义错、指标定义分散、还可能 SQL 注入越权。右边语义模型架构，多了一层——LLM 只负责把自然语言转成结构化参数，只给参数不写 SQL；<b>语义层拿到参数，结合预定义的指标、表关系和权限</b>，翻译成正确查询。同一个问题永远返回一样答案，权限也在语义层执行。核心差异就是<b>直接路径和治理路径</b>。好，接下来看<b>图表工具</b>。</div>
+<div class="deck-footer"><span class="dim2">数据应用部 · 苏焕雄</span><span class="slide-number" data-current="15" data-total="24"></span></div>
+</section>
+
+<!-- ════════════════════════════════════════════  图表工具  ═══════════════════ -->
+<!-- 6.1 图表工具 - Hero -->
+<section class="slide center tc" data-title="图表工具 · Hero">
+  <div class="deck-header"><span>AI 风控官 · 图表工具</span></div>
+  <div>
+    <p class="kicker">05 · 图表工具 EchartsTools</p>
+    <h1 class="h1">给数据一句话，<br><span style="color:var(--accent-3)">自动出一张图。</span></h1>
+    <p class="lede mt-l">AI 风控官的画图工具，嵌在 Agent 身上——Agent 发现需要画图就自动调用，<br>拿到数据+意图，自动选合适的图、配好坐标轴，直接画在回答里。</p>
+  </div>
+  <div class="notes">第五个模块——<b>图表工具</b>。非常简单：给数据一句话，自动出一张图。它是嵌在 Agent 身上的工具，Agent 发现需要画图就自动调，不用人手动触发。那为什么需要图表工具？翻下一页。</div>
+<div class="deck-footer"><span class="dim2">数据应用部 · 苏焕雄</span><span class="slide-number" data-current="16" data-total="24"></span></div>
+</section>
+
+<!-- 6.2 图表工具 - 为什么需要 -->
+<section class="slide" data-title="图表工具 · 为什么">
+  <div class="deck-header"><span>AI 风控官 · 图表工具</span></div>
+  <p class="kicker">第 1 步 · 先看为什么需要</p>
+  <h2 class="h2">甩一张大表，谁看得过来？</h2>
+  <p class="lede">数据查出来往往是几十行数字，密密麻麻，看完不知道重点在哪、更看不出趋势。自动画成图，结论一眼就清楚。</p>
+  <div class="grid g2 mt-m">
+    <div class="card vs-bad" style="padding:14px 16px">
+      <h4 style="color:var(--bad);font-size:18px;margin-bottom:8px">☹ 甩一张大表</h4>
+      <p class="dim" style="font-size:14px">几十行数字堆在一起，看完抓不住重点，也看不出涨跌趋势——还得自己在脑子里画图。</p>
+      <div style="font-size:13px;color:var(--text-2);background:var(--bg-soft);border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-top:10px;line-height:2;font-family:ui-monospace,monospace">
+        <b>月份　　签约金额(亿)</b><br>
+        2026-01　　6.12<br>2026-02　　6.85<br>2026-03　　7.40<br>2026-04　　7.02<br>2026-05　　8.09<br>……（共 24 行）
+      </div>
+      <div class="tag mt-s">数字一堆 → 抓不住重点、看不出趋势</div>
+    </div>
+    <div class="card vs-good" style="padding:14px 16px">
+      <h4 style="color:var(--good);font-size:18px;margin-bottom:8px">☺ 自动画成图</h4>
+      <p class="dim" style="font-size:14px">只需一句话意图，工具自动挑合适的图、配好坐标轴，趋势/对比/占比一目了然。</p>
+      <div style="margin-top:12px;text-align:center">
+        <div style="font-size:13px;font-weight:700;margin-bottom:6px">签约金额趋势（示意）</div>
+        <svg viewBox="0 0 300 130" style="width:100%;max-width:380px;height:auto;display:block;margin:0 auto" font-family="system-ui,sans-serif">
+          <polyline points="20,80 70,68 120,52 170,60 220,38 270,22" fill="none" stroke="#1a9f74" stroke-width="2.5"/>
+          <g fill="#1a9f74"><circle cx="20" cy="80" r="3"/><circle cx="70" cy="68" r="3"/><circle cx="120" cy="52" r="3"/><circle cx="170" cy="60" r="3"/><circle cx="220" cy="38" r="3"/><circle cx="270" cy="22" r="3"/></g>
+          <line x1="20" y1="95" x2="280" y2="95" stroke="#cbd5e1" stroke-width="1"/>
+          <g font-size="9" fill="#94a3b8" text-anchor="middle"><text x="20" y="106">1月</text><text x="70" y="106">2月</text><text x="120" y="106">3月</text><text x="170" y="106">4月</text><text x="220" y="106">5月</text><text x="270" y="106">6月</text></g>
+        </svg>
+      </div>
+      <div class="tag mt-s">一句话出图 → 趋势一眼看清</div>
+    </div>
+  </div>
+  <div class="notes">为什么要画图？看左边，甩一张大表几十行数字，密密麻麻，谁看得过来？重点在哪、涨跌趋势，全看不出来。右边自动画成图，趋势一眼就看清楚了。接下来看具体流程。</div>
+<div class="deck-footer"><span class="dim2">数据应用部 · 苏焕雄</span><span class="slide-number" data-current="17" data-total="24"></span></div>
+</section>
+
+<!-- 6.3 图表工具 - 流程 SVG -->
+<section class="slide" data-title="图表工具 · 流程">
+  <div class="deck-header"><span>AI 风控官 · 图表工具</span></div>
+  <p class="kicker">第 1-2 步 · 为什么需要 + 工作流程</p>
+  <h2 class="h2">从"数据+一句话"到"一张图"</h2>
+  <div style="max-width:900px;width:100%;align-self:center">
+    <svg viewBox="0 0 786 300" style="width:100%;height:auto;display:block" font-family="system-ui, -apple-system, 'PingFang SC', sans-serif">
+      <defs>
+        <marker id="ech-aG" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#94a3b8"/></marker>
+        <linearGradient id="ech-hdr" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#1e3a5f"/><stop offset="100%" stop-color="#2563eb"/></linearGradient>
+      </defs>
+      <rect width="786" height="300" fill="#fafbfc" rx="10"/>
+      <rect x="0" y="0" width="786" height="44" fill="url(#ech-hdr)" rx="10"/><rect x="0" y="36" width="786" height="8" fill="url(#ech-hdr)"/>
+      <text x="393" y="29" fill="#fff" font-size="15" font-weight="700" text-anchor="middle">图表工具 · 给数据一句话，自动出一张图</text>
+      <rect x="24" y="74" width="156" height="110" rx="12" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
+      <text x="102" y="104" fill="#1e3a5f" font-size="13" font-weight="700" text-anchor="middle">① 数据 + 意图</text>
+      <text x="102" y="130" fill="#475569" font-size="11.5" text-anchor="middle">一张表格 + 一句话</text>
+      <text x="102" y="152" fill="#2563eb" font-size="11" font-weight="700" text-anchor="middle">「按月看趋势」</text>
+      <text x="102" y="172" fill="#94a3b8" font-size="10" text-anchor="middle">（Agent 自动调用）</text>
+      <line x1="180" y1="129" x2="216" y2="129" stroke="#94a3b8" stroke-width="2" marker-end="url(#ech-aG)"/>
+      <rect x="218" y="74" width="156" height="110" rx="12" fill="#fff7ed" stroke="#d97706" stroke-width="2.5"/>
+      <rect x="330" y="78" width="40" height="18" rx="9" fill="#d97706"/><text x="350" y="91" fill="#fff" font-size="10" font-weight="700" text-anchor="middle">LLM</text>
+      <text x="296" y="108" fill="#92400e" font-size="13" font-weight="700" text-anchor="middle">② 选图小专家</text>
+      <text x="296" y="128" fill="#92400e" font-size="10.5" text-anchor="middle">只看「抽样 5 行」</text>
+      <text x="296" y="146" fill="#92400e" font-size="10.5" text-anchor="middle">+ 意图 → 出图规则</text>
+      <text x="296" y="168" fill="#b45309" font-size="10" text-anchor="middle">图型 / X·Y 轴</text>
+      <line x1="374" y1="129" x2="410" y2="129" stroke="#94a3b8" stroke-width="2" marker-end="url(#ech-aG)"/>
+      <rect x="412" y="74" width="156" height="110" rx="12" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
+      <rect x="524" y="78" width="40" height="18" rx="9" fill="#2563eb"/><text x="544" y="91" fill="#fff" font-size="10" font-weight="700" text-anchor="middle">程序</text>
+      <text x="490" y="108" fill="#1e3a5f" font-size="13" font-weight="700" text-anchor="middle">③ 生成图表配置</text>
+      <text x="490" y="128" fill="#475569" font-size="10.5" text-anchor="middle">按规则解析「全量数据」</text>
+      <text x="490" y="146" fill="#475569" font-size="10.5" text-anchor="middle">坐标轴 / 系列 / 中文字段</text>
+      <text x="490" y="168" fill="#94a3b8" font-size="10" text-anchor="middle">（不调 LLM，快）</text>
+      <line x1="568" y1="129" x2="604" y2="129" stroke="#94a3b8" stroke-width="2" marker-end="url(#ech-aG)"/>
+      <rect x="606" y="74" width="156" height="110" rx="12" fill="#ecfdf5" stroke="#16a34a" stroke-width="2"/>
+      <text x="684" y="104" fill="#166534" font-size="13" font-weight="700" text-anchor="middle">④ 嵌进回答</text>
+      <text x="684" y="130" fill="#16a34a" font-size="11.5" text-anchor="middle">返回图表占位符</text>
+      <text x="684" y="152" fill="#475569" font-size="11.5" text-anchor="middle">前端识别后直接渲染</text>
+      <text x="684" y="172" fill="#94a3b8" font-size="10" text-anchor="middle">（一张可交互图）</text>
+      <rect x="24" y="212" width="738" height="40" rx="8" fill="#f1f5f9"/>
+      <text x="44" y="236" fill="#334155" font-size="11.5"><tspan font-weight="700" fill="#1e3a5f">LLM 只看抽样</tspan>：选图只喂 5 行样本，<tspan font-weight="700" fill="#1e3a5f">全量数据由程序处理</tspan>——又快，又不会撑爆 LLM 上下文。</text>
+    </svg>
+  </div>
+  <div class="notes">这张图四个步骤：①数据加意图，比如表格加"按月看趋势"，Agent 自动调用；②<b>选图小专家</b>——LLM 只看抽样五行加意图，输出出图规则；③<b>生成图表配置</b>——程序按规则处理全量数据，不调 LLM，快；④嵌进回答，前端渲染交互图。关键设计：<b>LLM 只看抽样，全量数据由程序处理</b>，又快又不会撑爆上下文。翻下一页看设计亮点。</div>
+<div class="deck-footer"><span class="dim2">数据应用部 · 苏焕雄</span><span class="slide-number" data-current="18" data-total="24"></span></div>
+</section>
+
+<!-- 6.3 图表工具 - 亮点 -->
+<section class="slide" data-title="图表工具 · 亮点">
+  <div class="deck-header"><span>AI 风控官 · 图表工具</span></div>
+  <p class="kicker">第 3 步 · 两个亮点</p>
+  <h2 class="h2">它比"画个图"多做了什么</h2>
+  <div class="grid g2 mt-m">
+    <div class="card card-accent">
+      <h4>🧠 自动选图</h4>
+      <p class="dim" style="font-size:13px">选图小专家（LLM）只看抽样几行+意图，输出出图规则：用什么图、X/Y怎么放。"说人话就行"，不用人指定。</p>
+    </div>
+    <div class="card card-accent">
+      <h4>🗃️ 不撑爆上下文</h4>
+      <p class="dim" style="font-size:13px">LLM 上下文空间有限，不适合一次传入全部数据（比如 100 行）。我们的做法：选图阶段只传抽样 5 行给 LLM 判断、分析，并给出数据解析规则，全量数据由程序按规则处理，不进模型上下文——既不撑爆窗口，也不会被截断。</p>
+    </div>
+  </div>
+  <div class="notes">两个亮点：第一<b>自动选图</b>——选图小专家只看抽样加意图就输出出图规则，说人话就行；第二<b>不撑爆上下文</b>——LLM只喂抽样，全量数据由程序处理，不进模型上下文。好，最后一个模块——<b>卡片工具</b>。</div>
+<div class="deck-footer"><span class="dim2">数据应用部 · 苏焕雄</span><span class="slide-number" data-current="19" data-total="24"></span></div>
+</section>
+
+<!-- ════════════════════════════════════════════  卡片工具  ═══════════════════ -->
+<!-- 7.1 卡片工具 - Hero -->
+<section class="slide center tc" data-title="卡片工具 · Hero">
+  <div class="deck-header"><span>AI 风控官 · 卡片工具</span></div>
+  <div>
+    <p class="kicker"> 06 · 卡片工具</p>
+    <h1 class="h1">零散数据，<br><span style="color:var(--accent-3)">自动排成卡片。</span></h1>
+    <p class="lede mt-l">AI 风控官的卡片工具：Agent 拿到客商零散信息，<br>自动排成一张张看得懂的卡片，像股票App里的个股概览，直接渲染在回答里。</p>
+  </div>
+  <div class="notes">最后一个模块——<b>卡片工具</b>。和图表工具类似，嵌在 Agent 身上的工具。功能很简单：把零散的客商数据自动排成一张张看得懂的卡片，像股票App里的个股概览。为什么需要卡片工具？翻下一页。</div>
+<div class="deck-footer"><span class="dim2">数据应用部 · 苏焕雄</span><span class="slide-number" data-current="20" data-total="24"></span></div>
+</section>
+
+<!-- 7.2 卡片工具 - 为什么需要 -->
+<section class="slide" data-title="卡片工具 · 为什么">
+  <div class="deck-header"><span>AI 风控官 · 卡片工具</span></div>
+  <p class="kicker">第 1 步 · 先看为什么需要</p>
+  <h2 class="h2">一段密密麻麻的文字，谁看得下去？</h2>
+  <p class="lede">客商信息查出来往往是一大段文字，重点混在里面、不好找。自动排成卡片——大数字、单位、涨跌、关键字段一目了然。</p>
+  <div class="grid g2 mt-m">
+    <div class="card vs-bad" style="padding:14px 16px">
+      <h4 style="color:var(--bad);font-size:18px;margin-bottom:8px">☹ 一段文字罗列</h4>
+      <p class="dim" style="font-size:14px">关键数字埋在长句里，得逐字找；多说少说几句，排版也乱。</p>
+      <div style="font-size:14px;color:var(--text-2);background:var(--bg-soft);border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-top:10px;line-height:2">
+        累计资金余额 2 亿元（同比↓）、累计利润额 1 亿元（同比↓）、利润率 5%（环比持平）、内控签约 2 亿元（同比↑5.16%、环比↓13.01%）……
+      </div>
+      <div class="tag mt-s">重点埋在文字里 → 读不进去</div>
+    </div>
+    <div class="card vs-good" style="padding:14px 16px">
+      <h4 style="color:var(--good);font-size:18px;margin-bottom:8px">☺ 自动排成卡片</h4>
+      <p class="dim" style="font-size:14px">同样的信息，排成结构化卡片：大数字+单位+涨跌箭头，一眼抓住重点。</p>
+      <div style="display:flex;gap:10px;margin-top:12px">
+        <div style="flex:1;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px">
+          <div style="font-size:12px;color:var(--text-2)">内控签约（信用）</div>
+          <div style="font-size:28px;font-weight:800;margin-top:2px">2<span style="font-size:13px;color:var(--text-2);font-weight:600;margin-left:4px">亿元</span></div>
+          <div style="font-size:11px;color:var(--text-2);margin-top:2px">客商经营指标</div>
+          <div style="display:flex;gap:8px;margin-top:8px;font-size:12px">
+            <span>同比 <span style="color:var(--bad);font-weight:700">↑ +5.16%</span></span>
+            <span>环比 <span style="color:var(--good);font-weight:700">↓ -13.01%</span></span>
+          </div>
+        </div>
+        <div style="flex:1;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px">
+          <div style="font-size:12px;color:var(--text-2)">累计资金余额</div>
+          <div style="font-size:28px;font-weight:800;margin-top:2px">2<span style="font-size:13px;color:var(--text-2);font-weight:600;margin-left:4px">亿元</span></div>
+          <div style="font-size:11px;color:var(--text-2);margin-top:2px">客商经营指标</div>
+          <div style="display:flex;gap:8px;margin-top:8px;font-size:12px">
+            <span>同比 <span style="color:var(--bad);font-weight:700">↓ -3.28%</span></span>
+            <span>环比 <span style="color:var(--good);font-weight:700">↑ +1.52%</span></span>
+          </div>
+        </div>
+      </div>
+      <div class="tag mt-s">结构化卡片 → 重点一眼清</div>
+    </div>
+  </div>
+  <div class="notes">为什么需要？客商信息查出来是一大段文字，资金余额利润率签约全挤在一起，读不进去。排成卡片就不一样了——大数字加单位、涨跌箭头，一眼看清。接下来看工作流程。</div>
+<div class="deck-footer"><span class="dim2">数据应用部 · 苏焕雄</span><span class="slide-number" data-current="21" data-total="24"></span></div>
+</section>
+
+<!-- 7.3 卡片工具 - 流程 SVG -->
+<section class="slide" data-title="卡片工具 · 流程">
+  <div class="deck-header"><span>AI 风控官 · 卡片工具</span></div>
+  <p class="kicker">第 2 步 · 一张图看懂流程</p>
+  <h2 class="h2">从"零散数据"到"一张卡片"</h2>
+  <div style="max-width:900px;width:100%;align-self:center">
+    <svg viewBox="0 0 786 250" style="width:100%;height:auto;display:block" font-family="system-ui, -apple-system, 'PingFang SC', sans-serif">
+      <defs>
+        <marker id="card-cG" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#94a3b8"/></marker>
+        <linearGradient id="card-chdr" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#1e3a5f"/><stop offset="100%" stop-color="#2563eb"/></linearGradient>
+      </defs>
+      <rect width="786" height="250" fill="#fafbfc" rx="10"/>
+      <rect x="0" y="0" width="786" height="44" fill="url(#card-chdr)" rx="10"/><rect x="0" y="36" width="786" height="8" fill="url(#card-chdr)"/>
+      <text x="393" y="29" fill="#fff" font-size="15" font-weight="700" text-anchor="middle">卡片工具 · 零散数据，自动排成卡片</text>
+      <rect x="24" y="74" width="156" height="110" rx="12" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
+      <text x="102" y="104" fill="#1e3a5f" font-size="13" font-weight="700" text-anchor="middle">① 零散数据</text>
+      <text x="102" y="130" fill="#475569" font-size="11" text-anchor="middle">名称 / 指标</text>
+      <text x="102" y="150" fill="#475569" font-size="11" text-anchor="middle">基本情况 / 零散字段</text>
+      <line x1="180" y1="129" x2="216" y2="129" stroke="#94a3b8" stroke-width="2" marker-end="url(#card-cG)"/>
+      <rect x="218" y="74" width="156" height="110" rx="12" fill="#fff7ed" stroke="#d97706" stroke-width="2.5"/>
+      <text x="296" y="108" fill="#92400e" font-size="13" font-weight="700" text-anchor="middle">② 归一化清洗</text>
+      <text x="296" y="132" fill="#92400e" font-size="10.5" text-anchor="middle">空值补「-」</text>
+      <text x="296" y="150" fill="#92400e" font-size="10.5" text-anchor="middle">方向/格式纠错</text>
+      <line x1="374" y1="129" x2="410" y2="129" stroke="#94a3b8" stroke-width="2" marker-end="url(#card-cG)"/>
+      <rect x="412" y="74" width="156" height="110" rx="12" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
+      <text x="490" y="108" fill="#1e3a5f" font-size="13" font-weight="700" text-anchor="middle">③ 卡片配置</text>
+      <text x="490" y="132" fill="#475569" font-size="10.5" text-anchor="middle">按模板填好</text>
+      <text x="490" y="150" fill="#475569" font-size="10.5" text-anchor="middle">指标 / 基本信息</text>
+      <text x="490" y="172" fill="#94a3b8" font-size="10.5" text-anchor="middle">（结构化 JSON）</text>
+      <line x1="568" y1="129" x2="604" y2="129" stroke="#94a3b8" stroke-width="2" marker-end="url(#card-cG)"/>
+      <rect x="606" y="74" width="156" height="110" rx="12" fill="#ecfdf5" stroke="#16a34a" stroke-width="2"/>
+      <text x="684" y="104" fill="#166534" font-size="13" font-weight="700" text-anchor="middle">④ 嵌进回答</text>
+      <text x="684" y="132" fill="#16a34a" font-size="11" text-anchor="middle">返回卡片占位符</text>
+      <text x="684" y="152" fill="#475569" font-size="11" text-anchor="middle">前端识别后渲染卡片</text>
+    </svg>
+  </div>
+  <div class="notes">四个步骤：①零散数据进来——名称、指标、基本情况；②<b>归一化清洗</b>——空值补横杠、方向格式纠错，保证数据干净；③按模板生成卡片配置，结构化 JSON；④嵌进回答，前端渲染。支持两种卡片：<b>核心指标卡组</b>和<b>企业名片</b>，字段缺失有兜底。翻下一页看业务价值。</div>
+<div class="deck-footer"><span class="dim2">数据应用部 · 苏焕雄</span><span class="slide-number" data-current="22" data-total="24"></span></div>
+</section>
+
+<!-- 7.3 卡片工具 - 业务价值 -->
+<section class="slide" data-title="卡片工具 · 价值">
+  <div class="deck-header"><span>AI 风控官 · 卡片工具</span></div>
+  <p class="kicker">第 3 步 · 业务价值</p>
+  <h2 class="h2">对我们的业务，意味着什么？</h2>
+  <p class="lede">卡片工具让客商信息从"一大段文字"变成"一眼能懂的卡片"——风控、审批、汇报都能直接用。</p>
+  <div class="grid g3 mt-m">
+    <div class="card card-accent">
+      <h4>📇 一眼看清重点</h4>
+      <p class="dim" style="font-size:13px">大数字、单位、涨跌箭头、实际控制人，关键信息一眼到位，不用逐字读长文。</p>
+    </div>
+    <div class="card card-accent">
+      <h4>🧱 排版稳定统一</h4>
+      <p class="dim" style="font-size:13px">按固定模板排，不会因模型多说少说几句就乱——对外汇报口径一致、专业。</p>
+    </div>
+    <div class="card card-accent">
+      <h4>🛡️ 稳：缺了错了有兜底</h4>
+      <p class="dim" style="font-size:13px">字段缺失、格式错误都会被清洗兜底，卡片总渲染得出来，不会画崩。</p>
+    </div>
+  </div>
+  <div class="notes">卡片工具三个业务价值：<b>一眼看清重点</b>——大数字单位涨跌箭头关键字段；<b>排版稳定统一</b>——按固定模板排不乱；<b>缺了错了有兜底</b>——字段缺失格式错误都会清洗兜底，卡片总渲染得出来。</div>
+<div class="deck-footer"><span class="dim2">数据应用部 · 苏焕雄</span><span class="slide-number" data-current="23" data-total="24"></span></div>
+</section>
+
+<!-- ════════════════════════════════════════════  THANKS  ══════════════════════ -->
+<section class="slide center tc" data-title="Thanks">
+  <div>
+    <div style="font-size:120px;font-weight:900;line-height:1;color:var(--accent)">谢谢</div>
+    <p class="lede mt-l" style="margin:14px auto">AI 风控官 · Agent 架构全解析</p>
+    <p class="kicker mt-l">数据应用部 · 苏焕雄</p>
+  </div>
+  <div class="notes">好，以上就是今天分享的六个模块。Agent Loop——一个循环加一个工具等于一个Agent；主子Agent——统筹派活分域专家会诊；Skill——先给目录用到才翻；语义模型——治理锚点加灵活补充；图表工具——给数据一句话自动出图；卡片工具——零散数据自动排成卡片。希望对大家理解 AI Agent 架构有帮助。谢谢！</div>
+<div class="deck-footer"><span class="dim2">数据应用部 · 苏焕雄</span><span class="slide-number" data-current="24" data-total="24"></span></div>
+</section>
+
+</div>
+<script src="assets/runtime.js"></script>
+</body></html>

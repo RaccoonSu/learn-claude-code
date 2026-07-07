@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NL2SQL vs 语义层 API — 可信数据基座架构对比</title>
+<title>传统文生SQL vs 语义模型 — 可信数据基座架构对比</title>
 <style>
 /* ===== Design Tokens ===== */
 :root {
@@ -312,14 +312,14 @@ h3 { font-size: 18px; font-weight: 700; }
 <header class="hero">
   <div class="wrap">
     <div class="eyebrow">可信数据基座 · 架构选型</div>
-    <h1>NL2SQL vs <span class="hl">语义层 API</span></h1>
+    <h1>传统文生SQL vs <span class="hl">语义模型</span></h1>
     <p class="lead">
       当 AI Agent / 业务用户需要访问企业数据时，有两种截然不同的技术路径。
       一种让 LLM 直接生成 SQL，另一种在数据之上构建统一的语义模型层。
       本图从架构原理、优缺点和适用场景出发，给出可操作的选型参考。
     </p>
     <div class="hero-tag">
-      <span>NL2SQL</span><span>Semantic Layer</span><span>Cube</span><span>dbt</span><span>AtScale</span><span>MCP</span>
+      <span>传统文生SQL</span><span>Semantic Layer</span><span>Cube</span><span>dbt</span><span>AtScale</span><span>MCP</span>
     </div>
   </div>
 </header>
@@ -330,15 +330,15 @@ h3 { font-size: 18px; font-weight: 700; }
     <div class="head">
       <div class="eyebrow">第 1 层 · 架构原理</div>
       <h2>两种架构，<span class="hl">两种信任模型</span></h2>
-      <p class="lead">核心差异：语义层在 LLM 和数据仓库之间插入了统一、可治理的中间层，NL2SQL 则让 LLM 直接面对原始表结构。</p>
+      <p class="lead">核心差异：语义层在 LLM 和数据仓库之间插入了统一、可治理的中间层，传统文生SQL 则让 LLM 直接面对原始表结构。</p>
     </div>
 
     <div class="pair">
 
-      <!-- ===== NL2SQL 架构 ===== -->
+      <!-- ===== 传统文生SQL 架构 ===== -->
       <div class="arch-card nl2sql">
         <div class="arch-label">
-          ⚡ NL2SQL 架构
+          传统文生SQL 架构
           <span class="badge">直接路径</span>
         </div>
 
@@ -378,17 +378,17 @@ WHERE created_at BETWEEN ...</code>
         </div>
 
         <div class="risk-list">
-          <div class="risk-item">✕ 意图容易跑偏：自然语言有歧义，LLM 可能会错意，给出"看起来对、其实答非所问"的结果</div>
-          <div class="risk-item">✕ SQL 一次性生成，无语义校验，结果不可复现</div>
-          <div class="risk-item">✕ 指标定义分散在 prompt / BI 工具中，无单一事实来源</div>
-          <div class="risk-item">✕ LLM 可能绕过权限意图（SQL 注入、越权查表）</div>
+          <div class="risk-item">意图容易跑偏：自然语言有歧义，LLM 可能会错意，给出"看起来对、其实答非所问"的结果</div>
+          <div class="risk-item">SQL 一次性生成，无语义校验，结果不可复现</div>
+          <div class="risk-item">指标定义分散在 prompt / BI 工具中，无单一事实来源</div>
+          <div class="risk-item">LLM 可能绕过权限意图（SQL 注入、越权查表）</div>
         </div>
       </div>
 
       <!-- ===== 语义层架构 ===== -->
       <div class="arch-card semantic">
         <div class="arch-label">
-          🛡️ 语义层 API 架构
+          语义模型架构
           <span class="badge">治理路径</span>
         </div>
 
@@ -405,7 +405,7 @@ WHERE created_at BETWEEN ...</code>
             <div class="rail"><div class="dot"></div></div>
             <div class="nd brand">
               <div class="nk">LLM 理解语义 → 结构化参数</div>
-              <div class="nv">把问题拆成：用什么指标、按什么维度、怎么过滤　<b>只给参数，不写 SQL</b></div>
+              <div class="nv">把问题拆成：用什么指标、按什么维度、怎么过滤<br><b>只给参数，不写 SQL</b></div>
             </div>
           </div>
 
@@ -417,7 +417,7 @@ WHERE created_at BETWEEN ...</code>
                 <div class="nv">按预定义的指标把参数翻译成正确查询，<b>同一个问题永远同一个答案</b></div>
               </div>
               <div class="zone">
-                <div class="z-sub">指标怎么算、表怎么连、谁能看什么 —— 都在这里定义一次</div>
+                <div class="z-sub">指标怎么算、表怎么连、谁能看什么 —— 都在这里定义</div>
               </div>
             </div>
           </div>
@@ -440,9 +440,9 @@ WHERE created_at BETWEEN ...</code>
         </div>
 
         <div class="adv-list">
-          <div class="adv-item">✓ 指标与 Join 关系预先定义，同一问题始终返回一致结果</div>
-          <div class="adv-item">✓ AI Agent 通过语义层 API 结构化发现实体，而非猜测表结构</div>
-          <div class="adv-item">✓ 安全策略在语义层执行，权限绕过的攻击面大幅缩小</div>
+          <div class="adv-item">指标与 Join 关系预先定义，同一问题始终返回一致结果</div>
+          <div class="adv-item">AI Agent 通过语义模型 结构化发现实体，而非猜测表结构</div>
+          <div class="adv-item">安全策略在语义层执行，权限绕过的攻击面大幅缩小</div>
         </div>
       </div>
 
@@ -470,10 +470,10 @@ WHERE created_at BETWEEN ...</code>
 
     <div class="pro-cons-grid">
 
-      <!-- NL2SQL 列 -->
+      <!-- 传统文生SQL 列 -->
       <div>
         <div class="pc-card pros">
-          <div class="pc-head">✅ NL2SQL 的 4 个优点</div>
+          <div class="pc-head">✅ 传统文生SQL 的 4 个优点</div>
           <div class="pc-body">
             <div class="pc-row">
               <span class="icon">🚀</span>
@@ -507,7 +507,7 @@ WHERE created_at BETWEEN ...</code>
         </div>
 
         <div class="pc-card cons" style="margin-top:20px">
-          <div class="pc-head">❌ NL2SQL 的 4 个缺点</div>
+          <div class="pc-head">❌ 传统文生SQL 的 4 个缺点</div>
           <div class="pc-body">
             <div class="pc-row">
               <span class="icon">🎲</span>
@@ -544,7 +544,7 @@ WHERE created_at BETWEEN ...</code>
       <!-- 语义层列 -->
       <div>
         <div class="pc-card pros">
-          <div class="pc-head">✅ 语义层 API 的 4 个优点</div>
+          <div class="pc-head">✅ 语义模型 的 4 个优点</div>
           <div class="pc-body">
             <div class="pc-row">
               <span class="icon">🎯</span>
@@ -578,7 +578,7 @@ WHERE created_at BETWEEN ...</code>
         </div>
 
         <div class="pc-card cons" style="margin-top:20px">
-          <div class="pc-head">❌ 语义层 API 的 4 个缺点</div>
+          <div class="pc-head">❌ 语义模型 的 4 个缺点</div>
           <div class="pc-body">
             <div class="pc-row">
               <span class="icon">🏗️</span>
@@ -630,7 +630,7 @@ WHERE created_at BETWEEN ...</code>
         <div class="dim-ico">🎯</div>
         <div class="dim-winner sl">语义层占优</div>
         <h3>准确性与幻觉</h3>
-        <p>语义层通过确定性映射消除 LLM "猜测"表结构和 Join 关系的环节。NL2SQL 的核心风险在于：LLM 生成的 SQL 可能语法正确但语义错误。语义层的风险和瓶颈转移到"指标定义本身是否准确"上。</p>
+        <p>语义层通过确定性映射消除 LLM "猜测"表结构和 Join 关系的环节。传统文生SQL 的核心风险在于：LLM 生成的 SQL 可能语法正确但语义错误。语义层的风险和瓶颈转移到"指标定义本身是否准确"上。</p>
       </div>
 
       <div class="dim-card">
@@ -644,28 +644,28 @@ WHERE created_at BETWEEN ...</code>
         <div class="dim-ico">🔐</div>
         <div class="dim-winner sl">语义层占优</div>
         <h3>安全与治理</h3>
-        <p>语义层的结构性安全优于 NL2SQL 的提示性安全。但在生产环境中，语义层也需要持续的 CVE 监控和补丁管理。历史漏洞提醒我们：没有完美安全。</p>
+        <p>语义层的结构性安全优于 传统文生SQL 的提示性安全。但在生产环境中，语义层也需要持续的 CVE 监控和补丁管理。历史漏洞提醒我们：没有完美安全。</p>
       </div>
 
       <div class="dim-card">
         <div class="dim-ico">💵</div>
         <div class="dim-winner tie">各有千秋</div>
         <h3>性能与成本</h3>
-        <p>NL2SQL 的 API 成本主要在 LLM 调用；语义层需要额外的中间件运维成本。语义层的预聚合/缓存可以降低查询成本，但这与语义层本身是独立的能力，NL2SQL 也可以搭配缓存。</p>
+        <p>传统文生SQL 的 API 成本主要在 LLM 调用；语义层需要额外的中间件运维成本。语义层的预聚合/缓存可以降低查询成本，但这与语义层本身是独立的能力，传统文生SQL 也可以搭配缓存。</p>
       </div>
 
       <div class="dim-card">
         <div class="dim-ico">🔍</div>
         <div class="dim-winner tie">各有千秋</div>
         <h3>可解释性</h3>
-        <p>语义层的指标溯源路径清晰（指标定义 → SQL 模板 → 查询结果）。NL2SQL 需要"反向解释"——从生成的 SQL 倒推 LLM 为什么这样生成，这在复杂场景下很困难。</p>
+        <p>语义层的指标溯源路径清晰（指标定义 → SQL 模板 → 查询结果）。传统文生SQL 需要"反向解释"——从生成的 SQL 倒推 LLM 为什么这样生成，这在复杂场景下很困难。</p>
       </div>
 
       <div class="dim-card">
         <div class="dim-ico">⏱️</div>
-        <div class="dim-winner nl">NL2SQL 占优</div>
+        <div class="dim-winner nl">传统文生SQL 占优</div>
         <h3>实施周期</h3>
-        <p>NL2SQL 可以在几小时内搭建原型。语义层需要数周到数月的指标梳理和语义建模，适合已有成熟数据治理体系的组织。</p>
+        <p>传统文生SQL 可以在几小时内搭建原型。语义层需要数周到数月的指标梳理和语义建模，适合已有成熟数据治理体系的组织。</p>
       </div>
     </div>
   </div>
@@ -689,13 +689,13 @@ WHERE created_at BETWEEN ...</code>
       <tbody>
         <tr>
           <td class="scenario">快速 POC / 内部探索</td>
-          <td><span class="pick pick-nl">NL2SQL</span></td>
+          <td><span class="pick pick-nl">传统文生SQL</span></td>
           <td>启动成本最低，几小时即可验证价值。适合"先跑通再治理"的阶段。</td>
         </tr>
         <tr>
           <td class="scenario">AI Agent 对接企业数据</td>
           <td><span class="pick pick-sl">语义层</span></td>
-          <td>Meta API / MCP Server 的结构化自省是目前唯一经多来源验证的差异化能力。NL2SQL Agent 在复杂 schema 上表现不稳定。</td>
+          <td>Meta API / MCP Server 的结构化自省是目前唯一经多来源验证的差异化能力。传统文生SQL Agent 在复杂 schema 上表现不稳定。</td>
         </tr>
         <tr>
           <td class="scenario">多 BI 工具指标统一</td>
@@ -709,29 +709,29 @@ WHERE created_at BETWEEN ...</code>
         </tr>
         <tr>
           <td class="scenario">高频 Ad-hoc 探索式查询</td>
-          <td><span class="pick pick-nl">NL2SQL</span></td>
-          <td>语义层的预定义模型可能不够灵活，NL2SQL 更适合"没有标准答案"的探索。</td>
+          <td><span class="pick pick-nl">传统文生SQL</span></td>
+          <td>语义层的预定义模型可能不够灵活，传统文生SQL 更适合"没有标准答案"的探索。</td>
         </tr>
         <tr>
           <td class="scenario">成熟组织长期建设</td>
           <td><span class="pick pick-both">组合使用</span></td>
-          <td>语义层作为可信基座（95% 的标准化查询），NL2SQL 作为弹性补充（5% 的探索式查询）。两者不是互斥的。</td>
+          <td>语义层作为可信基座（95% 的标准化查询），传统文生SQL 作为弹性补充（5% 的探索式查询）。两者不是互斥的。</td>
         </tr>
       </tbody>
     </table>
 
     <div class="takeaway" style="margin-top:32px">
       <strong>💡 最重要的建议：</strong>不要相信任何厂商的单方面基准数字。
-      在你的数据和场景上做 A/B 测试。语义层 + NL2SQL 不是二选一，而是可信数据基座的两个互补组件 ——
+      在你的数据和场景上做 A/B 测试。语义层 + 传统文生SQL 不是二选一，而是可信数据基座的两个互补组件 ——
       语义层提供<strong>治理锚点</strong>和<strong>AI Agent 可发现性</strong>，
-      NL2SQL 提供<strong>灵活性</strong>和<strong>快速启动</strong>。
+      传统文生SQL 提供<strong>灵活性</strong>和<strong>快速启动</strong>。
     </div>
   </div>
 </section>
 
 <footer class="footer">
   <div class="wrap">
-    可信数据基座 · NL2SQL vs 语义层 API 架构对比 · 基于深度研究（97 条声明 → 25 条三票对抗验证 → 14 条确认 / 11 条否决 → 综合 9 条核心结论）<br>
+    可信数据基座 · 传统文生SQL vs 语义模型 架构对比 · 基于深度研究（97 条声明 → 25 条三票对抗验证 → 14 条确认 / 11 条否决 → 综合 9 条核心结论）<br>
     方法论笔记：本报告仅对可通过独立技术验证的声明下结论。厂商自报基准数字和未审计案例均被滤除。
   </div>
 </footer>
