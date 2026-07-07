@@ -1,0 +1,955 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>语义模型：维度与指标</title>
+<link rel="stylesheet" href="assets/fonts.css">
+<link rel="stylesheet" href="assets/base.css">
+<link rel="stylesheet" href="assets/themes/blueprint.css">
+<link rel="stylesheet" href="assets/animations/animations.css">
+<style>
+/* ---- deck-scoped overrides for Chinese readability ---- */
+body {
+  font-family: 'Inter','Noto Sans SC',sans-serif;
+}
+.h1,.h2,h3,h4 {
+  font-family: 'Inter','Noto Sans SC',sans-serif;
+}
+.mono, pre, code, .sql-block {
+  font-family: 'JetBrains Mono','IBM Plex Mono',monospace;
+}
+
+/* ---- SQL 代码块 ---- */
+.sql-block {
+  background: rgba(0,0,0,.35);
+  border: 1px dashed rgba(190,220,255,.35);
+  border-radius: 6px;
+  padding: 20px 24px;
+  font-size: 15px;
+  line-height: 1.8;
+  color: #d4e6ff;
+  overflow-x: auto;
+}
+.sql-block .kw { color: #8ef0a6; }
+.sql-block .fn { color: #aee1ff; }
+.sql-block .tbl { color: #ffd27a; }
+.sql-block .cmt { color: #5f89b0; font-style: italic; }
+
+/* ---- 概念卡片 ---- */
+.concept-card {
+  background: rgba(255,255,255,.06);
+  border: 1px dashed rgba(190,220,255,.35);
+  border-radius: 4px;
+  padding: 28px 32px;
+}
+.concept-card h3 {
+  font-size: 26px;
+  margin-bottom: 10px;
+  color: #fff;
+}
+.concept-card .label {
+  display: inline-block;
+  padding: 2px 10px;
+  background: rgba(190,220,255,.15);
+  color: #aee1ff;
+  border-radius: 3px;
+  font-size: 12px;
+  letter-spacing: .06em;
+  margin-bottom: 12px;
+}
+
+/* ---- 总结表 ---- */
+.summary-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 15px;
+}
+.summary-table th {
+  text-align: left;
+  padding: 12px 16px;
+  background: rgba(255,255,255,.08);
+  border-bottom: 2px solid rgba(190,220,255,.35);
+  font-weight: 600;
+  color: #aee1ff;
+  font-size: 13px;
+  letter-spacing: .06em;
+}
+.summary-table td {
+  padding: 14px 16px;
+  border-bottom: 1px dashed rgba(190,220,255,.2);
+  vertical-align: top;
+  line-height: 1.6;
+}
+.summary-table td:first-child {
+  font-weight: 700;
+  color: #fff;
+  white-space: nowrap;
+}
+.summary-table .sql-col {
+  font-family: 'JetBrains Mono',monospace;
+  font-size: 14px;
+  color: #8ef0a6;
+}
+
+/* ---- 装饰 ---- */
+.divider-line {
+  width: 60px;
+  height: 3px;
+  background: rgba(255,255,255,.4);
+  margin: 16px 0;
+}
+
+/* ---- 封面数字圈 ---- */
+.num-circle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 2px dashed rgba(190,220,255,.5);
+  color: #aee1ff;
+  font-weight: 700;
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+/* ---- badge 标签 ---- */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 14px;
+  border-radius: 3px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: .04em;
+}
+.badge-dim {
+  background: rgba(142,240,166,.12);
+  color: #8ef0a6;
+  border: 1px solid rgba(142,240,166,.3);
+}
+.badge-metric {
+  background: rgba(174,225,255,.12);
+  color: #aee1ff;
+  border: 1px solid rgba(174,225,255,.3);
+}
+.badge-filter {
+  background: rgba(255,210,122,.12);
+  color: #ffd27a;
+  border: 1px solid rgba(255,210,122,.3);
+}
+.badge-sort {
+  background: rgba(255,138,150,.12);
+  color: #ff8a96;
+  border: 1px solid rgba(255,138,150,.3);
+}
+
+/* ---- 案例表格 ---- */
+.tag-label {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 8px;
+  font-size: 10px;
+  font-weight: 400;
+  border-radius: 3px;
+  vertical-align: middle;
+  background: rgba(255,255,255,.06);
+  color: var(--text-3);
+  border: 1px solid rgba(255,255,255,.1);
+}
+
+.case-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.case-table th {
+  padding: 12px 16px;
+  text-align: left;
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: .05em;
+  border-bottom: 2px solid rgba(190,220,255,.25);
+}
+.case-table td {
+  padding: 10px 16px;
+  border-bottom: 1px dashed rgba(190,220,255,.15);
+  color: #d4e6ff;
+}
+.case-table th.col-dim {
+  color: #8ef0a6;
+  background: rgba(142,240,166,.06);
+}
+.case-table th.col-metric {
+  color: #aee1ff;
+  background: rgba(174,225,255,.08);
+}
+.case-table th.col-derived {
+  color: #ffd27a;
+  background: rgba(255,210,122,.06);
+}
+.case-table th.col-agg {
+  color: #ff8a96;
+  background: rgba(255,138,150,.06);
+}
+.case-table td.col-dim {
+  color: #8ef0a6;
+  font-weight: 600;
+}
+.case-table td.col-metric {
+  color: #aee1ff;
+  font-variant-numeric: tabular-nums;
+}
+.case-table td.col-derived {
+  color: #ffd27a;
+  font-variant-numeric: tabular-nums;
+}
+.case-table td.col-agg {
+  color: #ff8a96;
+  font-size: 13px;
+}
+
+.case-table .group-row th {
+  font-size: 13px;
+  padding: 8px 16px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  border-bottom: none;
+}
+.case-table th.col-metric-group {
+  color: #aee1ff;
+  background: rgba(174,225,255,.05);
+  text-align: left;
+  border-bottom: 2px solid rgba(174,225,255,.3);
+}
+
+.case-legend {
+  display: flex;
+  gap: 20px;
+  margin-top: 16px;
+  font-size: 12px;
+  color: var(--text-3);
+}
+.case-legend span { display: flex; align-items: center; gap: 6px; }
+.case-legend .dot {
+  display: inline-block;
+  width: 10px; height: 10px;
+  border-radius: 2px;
+}
+.deck-header{top:8px}.deck-header span{font-size:18px;font-weight:700;letter-spacing:.04em;color:#aee1ff}
+</style>
+</head>
+<body>
+<div class="deck">
+
+<!-- ==================== 1. 封面 ==================== -->
+<section class="slide center tc" data-title="封面">
+  <div class="deck-header"><span>语义模型架构解析</span></div>
+  <div>
+    <p class="kicker" style="color:#8ef0a6">TEAM SHARING · 2026</p>
+    <h1 class="h1 anim-fade-up" data-anim="fade-up">
+      语义模型<br>
+      <span style="background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent">架构解析</span>
+    </h1>
+    <p class="lede mt-m" style="max-width:44ch;margin-left:auto;margin-right:auto">
+    </p>
+    <div class="row mt-l" style="justify-content:center;gap:32px">
+      <span class="badge badge-metric">指标</span>
+      <span class="badge badge-dim">维度</span>
+      <span class="badge badge-filter">过滤条件</span>
+      <span class="badge badge-sort">排序</span>
+    </div>
+    <p class="kicker" style="margin-top:16px;font-size:24px">数据应用部 · 苏焕雄</p>
+  </div>
+  <div class="notes">今天给大家分享<b>语义模型的 API 设计</b>——核心就四个概念：指标、维度、过滤条件、排序。一次问数，拆开来看就这四件事。我们先从<b>指标</b>开始。</div>
+<div class="deck-footer"><span class="dim2">数据应用部 · 苏焕雄</span><span class="slide-number" data-current="1" data-total="12"></span></div>
+</section>
+<section class="slide" data-title="路线图">
+  <div class="deck-header"><span>语义模型架构解析</span></div>
+  <p class="kicker" style="color:#8ef0a6">agenda</p>
+  <h2 class="h2">四个核心概念</h2>
+  <p class="lede dim">一次问数，拆开来看就这四件事。</p>
+
+  <div class="stack mt-l" style="gap:20px">
+    <div class="row" style="align-items:center;gap:20px;padding:18px 0;border-bottom:1px dashed rgba(190,220,255,.2)">
+      <span class="num-circle">1</span>
+      <div style="flex:1"><span style="font-size:22px;font-weight:700;color:#fff">指标</span><span class="dim2" style="margin-left:12px;font-size:14px">Measure / Metric</span></div>
+      <span class="dim2" style="font-size:13px">可聚合的数值</span>
+    </div>
+    <div class="row" style="align-items:center;gap:20px;padding:18px 0;border-bottom:1px dashed rgba(190,220,255,.2)">
+      <span class="num-circle">2</span>
+      <div style="flex:1"><span style="font-size:22px;font-weight:700;color:#fff">维度</span><span class="dim2" style="margin-left:12px;font-size:14px">Dimension</span></div>
+      <span class="dim2" style="font-size:13px">分组的依据</span>
+    </div>
+    <div class="row" style="align-items:center;gap:20px;padding:18px 0;border-bottom:1px dashed rgba(190,220,255,.2)">
+      <span class="num-circle">3</span>
+      <div style="flex:1"><span style="font-size:22px;font-weight:700;color:#fff">过滤条件</span><span class="dim2" style="margin-left:12px;font-size:14px">Filter</span></div>
+      <span class="dim2" style="font-size:13px">缩小数据范围</span>
+    </div>
+    <div class="row" style="align-items:center;gap:20px;padding:18px 0;border-bottom:1px dashed rgba(190,220,255,.2)">
+      <span class="num-circle">4</span>
+      <div style="flex:1"><span style="font-size:22px;font-weight:700;color:#fff">排序</span><span class="dim2" style="margin-left:12px;font-size:14px">Order / Sort</span></div>
+      <span class="dim2" style="font-size:13px">结果怎么排</span>
+    </div>
+  </div>
+  <div class="notes">四个核心概念：<b>指标</b>是可聚合的数值，对应 SELECT 里的 SUM/COUNT/AVG；<b>维度</b>是分组的依据，对应 GROUP BY；<b>过滤条件</b>缩小数据范围，对应 WHERE/HAVING；<b>排序</b>决定结果怎么排，对应 ORDER BY。翻下一页看指标的详细设计。</div>
+<div class="deck-footer"><span class="dim2">数据应用部 · 苏焕雄</span><span class="slide-number" data-current="2" data-total="12"></span></div>
+</section>
+<section class="slide" data-title="指标" style="justify-content:flex-start;padding-top:56px">
+  <div class="deck-header"><span>语义模型架构解析</span></div>
+  <p class="kicker" style="color:#8ef0a6;margin-bottom:4px">01 · 指标</p>
+  <h2 class="h2" style="margin-bottom:4px">算出来的那个"数"</h2>
+  <p class="lede dim" style="font-size:17px;margin-bottom:0">指标是 <span class="badge badge-metric" style="font-size:13px;padding:2px 10px">SELECT</span> 里带聚合函数的字段，最终展示给用户的数值。</p>
+
+  <div class="grid g2 mt-s" style="align-items:stretch;gap:20px">
+    <!-- 基础指标 -->
+    <div class="concept-card" style="padding:16px 20px">
+      <span class="label" style="margin-bottom:6px">基础指标</span>
+      <p class="dim" style="font-size:13px;line-height:1.6;margin-top:0">
+        直接从表的数值字段聚合得来，每个指标有默认聚合方式：
+      </p>
+      <div class="row wrap" style="gap:8px">
+        <span class="badge badge-metric" style="font-size:12px;padding:3px 10px">SUM</span>
+        <span class="badge badge-metric" style="font-size:12px;padding:3px 10px">COUNT</span>
+        <span class="badge badge-metric" style="font-size:12px;padding:3px 10px">AVG</span>
+        <span class="badge badge-metric" style="font-size:12px;padding:3px 10px">MAX</span>
+        <span class="badge badge-metric" style="font-size:12px;padding:3px 10px">COUNT DISTINCT</span>
+      </div>
+    </div>
+    <!-- 特殊指标 — 维度聚合 -->
+    <div class="concept-card" style="padding:16px 20px;border-color:rgba(255,210,122,.35)">
+      <span class="label" style="margin-bottom:6px">特殊指标 — 维度聚合 <span class="badge badge-filter" style="font-size:9px;padding:1px 6px">特例</span></span>
+      <p class="dim" style="font-size:12px;line-height:1.5;margin-top:0">
+        对<strong style="color:#fff">维度字段</strong>做聚合拼接，产出<strong style="color:#ffd27a">文本列表</strong>而非数值。
+      </p>
+      <div class="row wrap" style="gap:6px">
+        <span class="badge badge-filter" style="font-size:11px;padding:2px 8px">GROUP_CONCAT</span>
+        <span class="badge badge-filter" style="font-size:11px;padding:2px 8px">STRING_AGG</span>
+        <span class="badge badge-filter" style="font-size:11px;padding:2px 8px">COLLECT_SET</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 派生指标 全宽 -->
+  <div class="mt-s">
+    <div class="concept-card" style="padding:16px 20px">
+      <span class="label" style="margin-bottom:6px">派生指标</span>
+      <p class="dim" style="font-size:13px;line-height:1.6;margin-top:0">
+        <strong style="color:#fff">不能直接从表字段取</strong>，分为两类：
+      </p>
+      <div class="grid g2" style="align-items:start;gap:14px">
+        <div class="stack" style="gap:4px">
+          <div style="color:#aee1ff;font-size:12px;font-weight:600">① 跨指标公式</div>
+          <span class="badge badge-metric" style="font-size:12px;padding:3px 10px">客单价 = 销售额 ÷ 下单用户数</span>
+          <span class="badge badge-metric" style="font-size:12px;padding:3px 10px">毛利率 = (收入 - 成本) ÷ 收入</span>
+        </div>
+        <div class="stack" style="gap:4px">
+          <div style="color:#ffd27a;font-size:12px;font-weight:600">② 条件聚合（同指标 × 维度值）</div>
+          <span class="badge badge-metric" style="font-size:12px;padding:3px 10px">线下销售额 = SUM(CASE channel='线下' THEN amount ELSE 0 END)</span>
+          <span class="badge badge-metric" style="font-size:12px;padding:3px 10px">线上销售额 = SUM(CASE channel='线上' THEN amount ELSE 0 END)</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sql-block mt-s">
+    <span class="cmt">-- 基础指标 + 派生指标（跨指标公式 + 条件聚合） + 维度聚合</span><br>
+    <span class="kw">SELECT</span> <span class="tbl">region</span>,<br>
+    &nbsp;&nbsp;<span class="fn">SUM</span>(<span class="tbl">amount</span>) <span class="kw">AS</span> <span class="tbl">sales</span>, <span class="cmt">← 基础指标</span><br>
+    &nbsp;&nbsp;<span class="fn">SUM</span>(<span class="tbl">amount</span>) / <span class="fn">COUNT</span>(<span class="kw">DISTINCT</span> <span class="tbl">user_id</span>) <span class="kw">AS</span> <span class="tbl">arpu</span>, <span class="cmt">← 派生：跨指标公式</span><br>
+    &nbsp;&nbsp;<span class="fn">SUM</span>(<span class="kw">CASE WHEN</span> <span class="tbl">channel</span> = <span class="str">'线上'</span> <span class="kw">THEN</span> <span class="tbl">amount</span> <span class="kw">ELSE</span> <span class="num">0</span> <span class="kw">END</span>) <span class="kw">AS</span> <span class="tbl">online_sales</span>, <span class="cmt">← 派生：条件聚合</span><br>
+    &nbsp;&nbsp;<span class="fn">GROUP_CONCAT</span>(<span class="tbl">product</span>) <span class="kw">AS</span> <span class="tbl">products</span> <span class="cmt">← 维度聚合</span><br>
+    <span class="kw">FROM</span> <span class="tbl">dw.dwd_order_info</span><br>
+    <span class="kw">GROUP BY</span> <span class="tbl">region</span>
+  </div>
+  <div class="notes"><b>指标</b>就是算出来的那个数。分为三类：<b>基础指标</b>——直接从表字段聚合，默认 SUM/COUNT/AVG/MAX；<b>派生指标</b>——不能直接从字段取，包括跨指标公式如客单价=销售额÷用户数，以及条件聚合如线上销售额=SUM(CASE WHEN channel='线上')；<b>维度聚合</b>——对维度字段做 GROUP_CONCAT，产出文本列表。翻下一页看指标案例。</div>
+<div class="deck-footer"><span class="dim2">数据应用部 · 苏焕雄</span><span class="slide-number" data-current="3" data-total="12"></span></div>
+</section>
+<section class="slide" data-title="案例" style="justify-content:flex-start;padding-top:56px">
+  <div class="deck-header"><span>语义模型架构解析</span></div>
+  <p class="kicker" style="color:#8ef0a6;margin-bottom:4px">01 · 指标案例</p>
+  <h2 class="h2" style="margin-bottom:4px">指标案例：按地区统计</h2>
+
+  <div class="card mt-s" style="padding:2px 4px;background:rgba(255,255,255,.04)">
+    <table class="case-table">
+      <thead>
+        <tr class="group-row">
+          <th class="col-dim" style="width:10%">维度</th>
+          <th colspan="4" class="col-metric-group">指标 <span class="tag-label" style="background:rgba(174,225,255,.12);color:#aee1ff;border-color:rgba(174,225,255,.3)">4 个列均为指标</span></th>
+        </tr>
+        <tr>
+          <th class="col-dim">地区</th>
+          <th class="col-metric">销售额 <span class="tag-label">基础指标</span></th>
+          <th class="col-derived">客单价 <span class="tag-label">跨指标公式</span></th>
+          <th class="col-metric">线上销售额 <span class="tag-label">条件聚合</span></th>
+          <th class="col-agg">聚合商品 <span class="tag-label">维度聚合</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="col-dim">华东</td><td class="col-metric">8,562,000</td><td class="col-derived">342.50</td><td class="col-metric">5,680,000</td><td class="col-agg">衬衫,卫裤,羽绒服,运动鞋</td>
+        </tr>
+        <tr>
+          <td class="col-dim">华南</td><td class="col-metric">6,180,000</td><td class="col-derived">289.00</td><td class="col-metric">3,890,000</td><td class="col-agg">T恤,牛仔裤,连衣裙,凉鞋</td>
+        </tr>
+        <tr>
+          <td class="col-dim">华北</td><td class="col-metric">5,340,000</td><td class="col-derived">312.80</td><td class="col-metric">3,460,000</td><td class="col-agg">夹克,毛衣,靴子,围巾</td>
+        </tr>
+        <tr>
+          <td class="col-dim">西南</td><td class="col-metric">3,215,000</td><td class="col-derived">256.30</td><td class="col-metric">1,870,000</td><td class="col-agg">短裤,防晒衣,凉鞋,泳镜,遮阳帽</td>
+        </tr>
+        <tr>
+          <td class="col-dim">华中</td><td class="col-metric">4,890,000</td><td class="col-derived">298.60</td><td class="col-metric">2,980,000</td><td class="col-agg">棉服,雪地靴,羽绒服,羊毛袜</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="case-legend">
+      <span><span class="dot" style="background:#8ef0a6"></span> 维度</span>
+      <span><span class="dot" style="background:#aee1ff"></span> 基础指标</span>
+      <span><span class="dot" style="background:#ffd27a"></span> 派生：跨指标公式</span>
+      <span><span class="dot" style="background:#aee1ff"></span> 条件聚合 = SUM(CASE WHEN channel)</span>
+      <span><span class="dot" style="background:#ff8a96"></span> 维度聚合</span>
+    </div>
+  </div>
+  <div class="notes">指标案例：按地区统计，一个维度（地区）+ 四个指标列（销售额、客单价、线上销售额、聚合商品）。四列都是指标，但类型不同——销售额是基础指标、客单价是跨指标公式、线上销售额是条件聚合、聚合商品是维度聚合。翻下一页看<b>维度</b>。</div>
+<div class="deck-footer"><span class="dim2">数据应用部 · 苏焕雄</span><span class="slide-number" data-current="4" data-total="12"></span></div>
+</section>
+<section class="slide" data-title="维度" style="justify-content:flex-start;padding-top:28px">
+  <div class="deck-header"><span>语义模型架构解析</span></div>
+  <p class="kicker" style="color:#8ef0a6;margin-bottom:4px">02 · 维度</p>
+  <h2 class="h2" style="margin-bottom:4px">按什么分组？</h2>
+  <p class="lede dim" style="font-size:17px;margin-bottom:0">维度是数据的"角度"，是 <span class="badge badge-dim" style="font-size:13px;padding:2px 10px">GROUP BY</span> 后面的字段。</p>
+
+  <div class="grid g2 mt-s" style="align-items:start;gap:12px">
+    <div class="concept-card" style="padding:12px 16px">
+      <span class="label" style="margin-bottom:4px">定义</span>
+      <p class="dim" style="font-size:13px;line-height:1.5;margin-top:0">
+        <strong style="color:#fff">非数值型</strong>的分组属性字段。用户说"按地区"、"按月份"、"各个品类"，本质就是维度。
+      </p>
+    </div>
+    <div class="concept-card" style="padding:12px 16px">
+      <span class="label" style="margin-bottom:4px">常见维度</span>
+      <div class="row wrap" style="gap:8px">
+        <span class="badge badge-dim" style="font-size:12px;padding:3px 10px">地区</span>
+        <span class="badge badge-dim" style="font-size:12px;padding:3px 10px">品类</span>
+        <span class="badge badge-dim" style="font-size:12px;padding:3px 10px">渠道</span>
+        <span class="badge badge-dim" style="font-size:12px;padding:3px 10px">门店</span>
+        <span class="badge badge-dim" style="font-size:12px;padding:3px 10px">用户等级</span>
+        <span class="badge badge-dim" style="font-size:12px;padding:3px 10px">年份</span>
+        <span class="badge badge-dim" style="font-size:12px;padding:3px 10px">月份</span>
+        <span class="badge badge-dim" style="font-size:12px;padding:3px 10px">品牌</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="sql-block mt-s">
+    <span class="cmt">-- 按地区、月份维度，统计销售额</span><br>
+    <span class="kw">SELECT</span> <span class="tbl">region</span>, <span class="tbl">month</span>, <span class="fn">SUM</span>(<span class="tbl">amount</span>) <span class="kw">AS</span> <span class="tbl">sales</span> <span class="cmt">← 指标</span><br>
+    <span class="kw">FROM</span> <span class="tbl">dw.dwd_order_info</span><br>
+    <span class="kw">GROUP BY</span> <span class="tbl">region</span>, <span class="tbl">month</span> <span class="cmt">← 维度</span>
+  </div>
+
+  <div class="card mt-s" style="padding:0;overflow:hidden;background:rgba(255,255,255,.04)">
+    <table class="case-table">
+      <thead>
+        <tr>
+          <th class="col-dim" style="width:30%">地区 <span class="tag-label">维度</span></th>
+          <th class="col-dim" style="width:30%">月份 <span class="tag-label">维度</span></th>
+          <th class="col-metric" style="width:40%">销售额 <span class="tag-label">指标</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td class="col-dim">华东</td><td class="col-dim">2026-01</td><td class="col-metric">1,420,000</td></tr>
+        <tr><td class="col-dim">华东</td><td class="col-dim">2026-02</td><td class="col-metric">1,380,000</td></tr>
+        <tr><td class="col-dim">华东</td><td class="col-dim">2026-03</td><td class="col-metric">1,510,000</td></tr>
+        <tr><td class="col-dim">华南</td><td class="col-dim">2026-01</td><td class="col-metric">980,000</td></tr>
+        <tr><td class="col-dim">华南</td><td class="col-dim">2026-02</td><td class="col-metric">1,050,000</td></tr>
+        <tr><td class="col-dim">华南</td><td class="col-dim">2026-03</td><td class="col-metric">1,120,000</td></tr>
+        <tr><td class="col-dim">华北</td><td class="col-dim">2026-01</td><td class="col-metric">890,000</td></tr>
+        <tr><td class="col-dim">华北</td><td class="col-dim">2026-02</td><td class="col-metric">950,000</td></tr>
+        <tr><td class="col-dim">华北</td><td class="col-dim">2026-03</td><td class="col-metric">1,010,000</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="notes"><b>维度</b>就是按什么分组——对应 GROUP BY 后面的字段。是非数值型的分组属性，用户说"按地区""按月份""各个品类"，说的就是维度。翻下一页看维度越多会怎样。</div>
+<div class="deck-footer"><span class="dim2">数据应用部 · 苏焕雄</span><span class="slide-number" data-current="5" data-total="12"></span></div>
+</section>
+<section class="slide" data-title="维度案例" style="justify-content:flex-start;padding-top:56px">
+  <div class="deck-header"><span>语义模型架构解析</span></div>
+  <p class="kicker" style="color:#8ef0a6;margin-bottom:4px">02 · 维度案例</p>
+  <h2 class="h2" style="margin-bottom:4px">维度越多，分组越细</h2>
+  <p class="lede dim" style="font-size:17px;margin-bottom:0">以每个维度 5 种属性为例，每增加一个维度，结果行数翻倍。</p>
+
+  <div class="grid g3 mt-s" style="align-items:stretch;gap:16px">
+
+    <!-- 单维度 -->
+    <div class="concept-card" style="padding:12px 14px">
+      <div style="color:#8ef0a6;font-size:12px;font-weight:600;margin-bottom:6px">① 单维度 · 5 行</div>
+      <table style="width:100%;border-collapse:collapse;font-size:12px">
+        <thead><tr><th style="color:#8ef0a6;padding:4px 6px;text-align:left;border-bottom:1px solid rgba(142,240,166,.25);font-weight:600">地区</th><th style="color:#aee1ff;padding:4px 6px;text-align:right;border-bottom:1px solid rgba(142,240,166,.25);font-weight:600">销售额</th></tr></thead>
+        <tbody>
+          <tr><td style="padding:4px 6px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.1)">华东</td><td style="padding:4px 6px;color:#aee1ff;text-align:right;font-variant-numeric:tabular-nums">8,562,000</td></tr>
+          <tr><td style="padding:4px 6px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.1)">华南</td><td style="padding:4px 6px;color:#aee1ff;text-align:right;font-variant-numeric:tabular-nums">6,180,000</td></tr>
+          <tr><td style="padding:4px 6px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.1)">华北</td><td style="padding:4px 6px;color:#aee1ff;text-align:right;font-variant-numeric:tabular-nums">5,340,000</td></tr>
+          <tr><td style="padding:4px 6px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.1)">西南</td><td style="padding:4px 6px;color:#aee1ff;text-align:right;font-variant-numeric:tabular-nums">3,215,000</td></tr>
+          <tr><td style="padding:4px 6px;color:#d4e6ff">华中</td><td style="padding:4px 6px;color:#aee1ff;text-align:right;font-variant-numeric:tabular-nums">4,890,000</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 双维度 -->
+    <div class="concept-card" style="padding:12px 14px">
+      <div style="color:#aee1ff;font-size:12px;font-weight:600;margin-bottom:6px">② 双维度 · 25 行</div>
+      <div style="overflow-y:auto;max-height:210px">
+      <table style="width:100%;border-collapse:collapse;font-size:11px">
+        <thead><tr><th style="color:#8ef0a6;padding:3px 5px;text-align:left;border-bottom:1px solid rgba(142,240,166,.25);font-weight:600">地区</th><th style="color:#8ef0a6;padding:3px 5px;text-align:left;border-bottom:1px solid rgba(142,240,166,.25);font-weight:600">品类</th><th style="color:#aee1ff;padding:3px 5px;text-align:right;border-bottom:1px solid rgba(142,240,166,.25);font-weight:600">销售额</th></tr></thead>
+        <tbody>
+          <tr><td style="padding:3px 5px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.08)">华东</td><td style="padding:3px 5px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.08)">服装</td><td style="padding:3px 5px;color:#aee1ff;text-align:right;font-variant-numeric:tabular-nums">2,561,000</td></tr>
+          <tr><td style="padding:3px 5px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.08)">华东</td><td style="padding:3px 5px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.08)">数码</td><td style="padding:3px 5px;color:#aee1ff;text-align:right;font-variant-numeric:tabular-nums">1,980,000</td></tr>
+          <tr><td style="padding:3px 5px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.08)">华东</td><td style="padding:3px 5px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.08)">食品</td><td style="padding:3px 5px;color:#aee1ff;text-align:right;font-variant-numeric:tabular-nums">1,245,000</td></tr>
+          <tr><td style="padding:3px 5px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.08)">华东</td><td style="padding:3px 5px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.08)">家居</td><td style="padding:3px 5px;color:#aee1ff;text-align:right;font-variant-numeric:tabular-nums">1,680,000</td></tr>
+          <tr><td style="padding:3px 5px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.08)">华东</td><td style="padding:3px 5px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.08)">美妆</td><td style="padding:3px 5px;color:#aee1ff;text-align:right;font-variant-numeric:tabular-nums">1,096,000</td></tr>
+          <tr><td style="padding:3px 5px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.08)">华南</td><td style="padding:3px 5px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.08)">服装</td><td style="padding:3px 5px;color:#aee1ff;text-align:right;font-variant-numeric:tabular-nums">1,920,000</td></tr>
+          <tr><td style="padding:3px 5px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.08)">华南</td><td style="padding:3px 5px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.08)">数码</td><td style="padding:3px 5px;color:#aee1ff;text-align:right;font-variant-numeric:tabular-nums">1,560,000</td></tr>
+          <tr><td style="padding:3px 5px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.08)">华南</td><td style="padding:3px 5px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.08)">食品</td><td style="padding:3px 5px;color:#aee1ff;text-align:right;font-variant-numeric:tabular-nums">980,000</td></tr>
+          <tr><td style="padding:3px 5px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.08)">华南</td><td style="padding:3px 5px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.08)">家居</td><td style="padding:3px 5px;color:#aee1ff;text-align:right;font-variant-numeric:tabular-nums">1,120,000</td></tr>
+          <tr><td style="padding:3px 5px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.08)">华南</td><td style="padding:3px 5px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.08)">美妆</td><td style="padding:3px 5px;color:#aee1ff;text-align:right;font-variant-numeric:tabular-nums">600,000</td></tr>
+          <tr><td style="padding:3px 5px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.08)">华北</td><td style="padding:3px 5px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.08)">服装</td><td style="padding:3px 5px;color:#aee1ff;text-align:right;font-variant-numeric:tabular-nums">1,780,000</td></tr>
+          <tr><td style="padding:3px 5px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.08)">华北</td><td style="padding:3px 5px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.08)">数码</td><td style="padding:3px 5px;color:#aee1ff;text-align:right;font-variant-numeric:tabular-nums">1,340,000</td></tr>
+          <tr><td style="padding:3px 5px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.08)">华北</td><td style="padding:3px 5px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.08)">食品</td><td style="padding:3px 5px;color:#aee1ff;text-align:right;font-variant-numeric:tabular-nums">890,000</td></tr>
+          <tr><td style="padding:3px 5px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.08)">华北</td><td style="padding:3px 5px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.08)">家居</td><td style="padding:3px 5px;color:#aee1ff;text-align:right;font-variant-numeric:tabular-nums">760,000</td></tr>
+          <tr><td style="padding:3px 5px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.08)">华北</td><td style="padding:3px 5px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.08)">美妆</td><td style="padding:3px 5px;color:#aee1ff;text-align:right;font-variant-numeric:tabular-nums">570,000</td></tr>
+          <tr><td style="padding:3px 5px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.08)">西南</td><td style="padding:3px 5px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.08)">服装</td><td style="padding:3px 5px;color:#aee1ff;text-align:right;font-variant-numeric:tabular-nums">1,150,000</td></tr>
+          <tr><td style="padding:3px 5px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.08)">西南</td><td style="padding:3px 5px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.08)">数码</td><td style="padding:3px 5px;color:#aee1ff;text-align:right;font-variant-numeric:tabular-nums">680,000</td></tr>
+          <tr><td style="padding:3px 5px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.08)">西南</td><td style="padding:3px 5px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.08)">食品</td><td style="padding:3px 5px;color:#aee1ff;text-align:right;font-variant-numeric:tabular-nums">520,000</td></tr>
+          <tr><td style="padding:3px 5px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.08)">西南</td><td style="padding:3px 5px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.08)">家居</td><td style="padding:3px 5px;color:#aee1ff;text-align:right;font-variant-numeric:tabular-nums">430,000</td></tr>
+          <tr><td style="padding:3px 5px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.08)">西南</td><td style="padding:3px 5px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.08)">美妆</td><td style="padding:3px 5px;color:#aee1ff;text-align:right;font-variant-numeric:tabular-nums">435,000</td></tr>
+          <tr><td style="padding:3px 5px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.08)">华中</td><td style="padding:3px 5px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.08)">服装</td><td style="padding:3px 5px;color:#aee1ff;text-align:right;font-variant-numeric:tabular-nums">1,560,000</td></tr>
+          <tr><td style="padding:3px 5px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.08)">华中</td><td style="padding:3px 5px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.08)">数码</td><td style="padding:3px 5px;color:#aee1ff;text-align:right;font-variant-numeric:tabular-nums">990,000</td></tr>
+          <tr><td style="padding:3px 5px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.08)">华中</td><td style="padding:3px 5px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.08)">食品</td><td style="padding:3px 5px;color:#aee1ff;text-align:right;font-variant-numeric:tabular-nums">870,000</td></tr>
+          <tr><td style="padding:3px 5px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.08)">华中</td><td style="padding:3px 5px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.08)">家居</td><td style="padding:3px 5px;color:#aee1ff;text-align:right;font-variant-numeric:tabular-nums">780,000</td></tr>
+          <tr><td style="padding:3px 5px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.08)">华中</td><td style="padding:3px 5px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.08)">美妆</td><td style="padding:3px 5px;color:#aee1ff;text-align:right;font-variant-numeric:tabular-nums">690,000</td></tr>
+        </tbody>
+      </table>
+      </div>
+    </div>
+
+    <!-- 三维度 -->
+    <div class="concept-card" style="padding:12px 14px">
+      <div style="color:#ffd27a;font-size:12px;font-weight:600;margin-bottom:6px">③ 三维度 · 125 行</div>
+      <div style="overflow-y:auto;max-height:210px">
+      <table style="width:100%;border-collapse:collapse;font-size:11px">
+        <thead><tr><th style="color:#8ef0a6;padding:2px 3px;text-align:left;border-bottom:1px solid rgba(142,240,166,.25);font-weight:600">地区</th><th style="color:#8ef0a6;padding:2px 3px;text-align:left;border-bottom:1px solid rgba(142,240,166,.25);font-weight:600">品类</th><th style="color:#8ef0a6;padding:2px 3px;text-align:left;border-bottom:1px solid rgba(142,240,166,.25);font-weight:600">渠道</th><th style="color:#aee1ff;padding:2px 3px;text-align:right;border-bottom:1px solid rgba(142,240,166,.25);font-weight:600">销售额</th></tr></thead>
+        <tbody>
+          <tr><td style="padding:2px 3px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.06)">华东</td><td style="padding:2px 3px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.06)">服装</td><td style="padding:2px 3px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.06)">线上</td><td style="padding:2px 3px;color:#aee1ff;text-align:right">1,024,000</td></tr>
+          <tr><td style="padding:2px 3px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.06)">华东</td><td style="padding:2px 3px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.06)">服装</td><td style="padding:2px 3px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.06)">门店</td><td style="padding:2px 3px;color:#aee1ff;text-align:right">857,000</td></tr>
+          <tr><td style="padding:2px 3px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.06)">华东</td><td style="padding:2px 3px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.06)">服装</td><td style="padding:2px 3px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.06)">直播</td><td style="padding:2px 3px;color:#aee1ff;text-align:right">680,000</td></tr>
+          <tr><td style="padding:2px 3px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.06)">华东</td><td style="padding:2px 3px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.06)">数码</td><td style="padding:2px 3px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.06)">线上</td><td style="padding:2px 3px;color:#aee1ff;text-align:right">780,000</td></tr>
+          <tr><td style="padding:2px 3px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.06)">华南</td><td style="padding:2px 3px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.06)">服装</td><td style="padding:2px 3px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.06)">线上</td><td style="padding:2px 3px;color:#aee1ff;text-align:right">890,000</td></tr>
+          <tr><td style="padding:2px 3px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.06)">华南</td><td style="padding:2px 3px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.06)">食品</td><td style="padding:2px 3px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.06)">门店</td><td style="padding:2px 3px;color:#aee1ff;text-align:right">430,000</td></tr>
+          <tr><td style="padding:2px 3px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.06)">华北</td><td style="padding:2px 3px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.06)">家居</td><td style="padding:2px 3px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.06)">直播</td><td style="padding:2px 3px;color:#aee1ff;text-align:right">320,000</td></tr>
+          <tr><td style="padding:2px 3px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.06)">西南</td><td style="padding:2px 3px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.06)">美妆</td><td style="padding:2px 3px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.06)">线上</td><td style="padding:2px 3px;color:#aee1ff;text-align:right">195,000</td></tr>
+          <tr><td style="padding:2px 3px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.06)">华中</td><td style="padding:2px 3px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.06)">数码</td><td style="padding:2px 3px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.06)">门店</td><td style="padding:2px 3px;color:#aee1ff;text-align:right">410,000</td></tr>
+          <tr><td colspan="4" style="padding:5px 3px;color:#5f89b0;text-align:center;font-style:italic">... 共 125 行（5×5×5）</td></tr>
+        </tbody>
+      </table>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="sql-block mt-s" style="font-size:13px">
+    <span class="cmt">-- 每增加一个 GROUP BY 字段，分组越细</span><br>
+    <span class="kw">SELECT</span> <span class="tbl">region</span>, <span class="fn">SUM</span>(<span class="tbl">amount</span>) <span class="kw">FROM</span> <span class="tbl">t</span> <span class="kw">GROUP BY</span> <span class="tbl">region</span> <span class="cmt">← 单维度 → 5 行</span><br>
+    <span class="kw">SELECT</span> <span class="tbl">region</span>, <span class="tbl">category</span>, <span class="fn">SUM</span>(<span class="tbl">amount</span>) <span class="kw">FROM</span> <span class="tbl">t</span> <span class="kw">GROUP BY</span> <span class="tbl">region</span>, <span class="tbl">category</span> <span class="cmt">← 双维度 → 25 行</span><br>
+    <span class="kw">SELECT</span> <span class="tbl">region</span>, <span class="tbl">category</span>, <span class="tbl">channel</span>, <span class="fn">SUM</span>(<span class="tbl">amount</span>) <span class="kw">FROM</span> <span class="tbl">t</span> <span class="kw">GROUP BY</span> <span class="tbl">region</span>, <span class="tbl">category</span>, <span class="tbl">channel</span> <span class="cmt">← 三维度 → 125 行</span>
+  </div>
+
+  <div class="concept-card mt-s" style="padding:14px 20px;border-color:rgba(255,210,122,.35)">
+    <div class="row" style="gap:8px;align-items:center;margin-bottom:6px">
+      <span style="color:#ffd27a;font-size:14px;font-weight:700">拓展问题</span>
+    </div>
+    <p class="dim" style="font-size:14px;line-height:1.7;margin:0">
+      <strong style="color:#fff">维度太多 → 行数爆炸 → LLM 分析不了，怎么办？</strong><br>
+      <strong style="color:#aee1ff">① 先聚合到粗粒度</strong> — 只按"省"而非"省×市×区"，减少分组组合数<br>
+      <strong style="color:#aee1ff">② 加条件缩小范围</strong> — 通过 WHERE 过滤掉大部分数据，只保留需要分析的局部数据
+    </p>
+  </div>
+  <div class="notes"><b>维度越多，分组越细，数据行数指数级增长</b>。单维度5行，双维度25行，三维度125行。这正是为什么需要过滤条件——不是所有数据都要看。翻下一页。</div>
+<div class="deck-footer"><span class="dim2">数据应用部 · 苏焕雄</span><span class="slide-number" data-current="6" data-total="12"></span></div>
+</section>
+<section class="slide" data-title="过滤条件" style="justify-content:flex-start;padding-top:56px">
+  <div class="deck-header"><span>语义模型架构解析</span></div>
+  <p class="kicker" style="color:#8ef0a6;margin-bottom:4px">03 · 过滤条件</p>
+  <h2 class="h2" style="margin-bottom:4px">不是所有数据都要看</h2>
+  <p class="lede dim" style="font-size:17px;margin-bottom:0">过滤条件对应 SQL 的 <span class="badge badge-filter" style="font-size:13px;padding:2px 10px">WHERE</span> / <span class="badge badge-filter" style="font-size:13px;padding:2px 10px">HAVING</span>，决定"看哪些数据"。</p>
+
+  <div class="grid g2 mt-s" style="align-items:start;gap:20px">
+    <div class="concept-card" style="padding:16px 20px">
+      <span class="label" style="margin-bottom:6px">对维度过滤（WHERE）</span>
+      <p class="dim" style="font-size:13px;line-height:1.5;margin-top:0">限定维度的值范围——"只看某几类的数据"</p>
+      <div style="font-size:13px;line-height:1.9">
+        <div><span style="color:#aee1ff">地区</span> = '华东'</div>
+        <div><span style="color:#aee1ff">品类</span> IN ('服装','鞋靴')</div>
+        <div><span style="color:#aee1ff">年份</span> >= 2024</div>
+      </div>
+    </div>
+    <div class="concept-card" style="padding:16px 20px">
+      <span class="label" style="margin-bottom:6px">对指标过滤（HAVING）</span>
+      <p class="dim" style="font-size:13px;line-height:1.5;margin-top:0">聚合后的结果再筛选——"只看达标的数据"</p>
+      <div style="font-size:13px;line-height:1.9">
+        <div><span style="color:#ffd27a">销售额</span> > 100 万</div>
+        <div><span style="color:#ffd27a">订单量</span> >= 1000</div>
+        <div><span style="color:#ffd27a">毛利率</span> < 10%</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sql-block mt-s">
+    <span class="cmt">-- 过滤：只查华东、销售额 > 100 万的品类</span><br>
+    <span class="kw">SELECT</span> <span class="tbl">category</span>, <span class="fn">SUM</span>(<span class="tbl">amount</span>) <span class="kw">AS</span> <span class="tbl">sales</span><br>
+    <span class="kw">FROM</span> <span class="tbl">dw.dwd_order_info</span><br>
+    <span class="kw">WHERE</span> <span class="tbl">region</span> = <span class="str">'华东'</span> <span class="cmt">← 过滤维度</span><br>
+    <span class="kw">GROUP BY</span> <span class="tbl">category</span><br>
+    <span class="kw">HAVING</span> <span class="fn">SUM</span>(<span class="tbl">amount</span>) > <span class="num">1000000</span> <span class="cmt">← 过滤指标</span>
+  </div>
+  <div class="notes"><b>过滤条件</b>对应 SQL 的 WHERE 和 HAVING。WHERE 限定维度值——只看某几类数据；HAVING 对聚合后的指标二次筛选——只看达标的数据。用户说"只看华东""销售额大于100万的"，就是过滤条件。翻下一页看交互案例。</div>
+<div class="deck-footer"><span class="dim2">数据应用部 · 苏焕雄</span><span class="slide-number" data-current="7" data-total="12"></span></div>
+</section>
+<section class="slide" data-title="过滤案例" style="justify-content:flex-start;padding-top:36px">
+  <div class="deck-header"><span>语义模型架构解析</span></div>
+  <p class="kicker" style="color:#8ef0a6;margin-bottom:4px">03 · 过滤案例</p>
+  <h2 class="h2" style="margin-bottom:4px">不是所有数据都要看</h2>
+  <p class="lede dim" style="font-size:15px;margin-bottom:0">点选地区和品类，表格会实时筛选。</p>
+
+  <div class="mt-s" style="background:rgba(255,255,255,.04);border:1px dashed rgba(190,220,255,.25);border-radius:4px;padding:16px 20px">
+    <div class="row" style="align-items:center;gap:14px;margin-bottom:10px">
+      <span class="dim" style="font-size:13px;font-weight:600;color:#8ef0a6">地区</span>
+      <button class="filter-tag filter-active" data-filter="region" data-val="" onclick="toggleFilter(this)">全部</button>
+      <button class="filter-tag" data-filter="region" data-val="华东" onclick="toggleFilter(this)">华东</button>
+      <button class="filter-tag" data-filter="region" data-val="华南" onclick="toggleFilter(this)">华南</button>
+      <button class="filter-tag" data-filter="region" data-val="华北" onclick="toggleFilter(this)">华北</button>
+      <button class="filter-tag" data-filter="region" data-val="西南" onclick="toggleFilter(this)">西南</button>
+      <button class="filter-tag" data-filter="region" data-val="华中" onclick="toggleFilter(this)">华中</button>
+    </div>
+    <div class="row" style="align-items:center;gap:14px;margin-bottom:14px">
+      <span class="dim" style="font-size:13px;font-weight:600;color:#ffd27a">品类</span>
+      <button class="filter-tag filter-active" data-filter="category" data-val="" onclick="toggleFilter(this)">全部</button>
+      <button class="filter-tag" data-filter="category" data-val="服装" onclick="toggleFilter(this)">服装</button>
+      <button class="filter-tag" data-filter="category" data-val="数码" onclick="toggleFilter(this)">数码</button>
+      <button class="filter-tag" data-filter="category" data-val="食品" onclick="toggleFilter(this)">食品</button>
+      <button class="filter-tag" data-filter="category" data-val="家居" onclick="toggleFilter(this)">家居</button>
+      <button class="filter-tag" data-filter="category" data-val="美妆" onclick="toggleFilter(this)">美妆</button>
+    </div>
+    <div style="overflow-x:auto">
+      <table id="filterTable" style="width:100%;border-collapse:collapse;font-size:13px">
+        <thead><tr><th style="color:#8ef0a6;padding:8px 12px;text-align:left;border-bottom:2px solid rgba(142,240,166,.3);font-weight:600">地区</th><th style="color:#8ef0a6;padding:8px 12px;text-align:left;border-bottom:2px solid rgba(142,240,166,.3);font-weight:600">品类</th><th style="color:#aee1ff;padding:8px 12px;text-align:right;border-bottom:2px solid rgba(142,240,166,.3);font-weight:600">销售额</th></tr></thead>
+        <tbody id="filterBody">
+          <tr data-region="华东" data-category="服装"><td style="padding:6px 12px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.1)">华东</td><td style="padding:6px 12px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.1)">服装</td><td style="padding:6px 12px;color:#aee1ff;text-align:right;font-variant-numeric:tabular-nums">2,561,000</td></tr>
+          <tr data-region="华东" data-category="数码"><td style="padding:6px 12px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.1)">华东</td><td style="padding:6px 12px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.1)">数码</td><td style="padding:6px 12px;color:#aee1ff;text-align:right;font-variant-numeric:tabular-nums">1,980,000</td></tr>
+          <tr data-region="华东" data-category="食品"><td style="padding:6px 12px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.1)">华东</td><td style="padding:6px 12px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.1)">食品</td><td style="padding:6px 12px;color:#aee1ff;text-align:right;font-variant-numeric:tabular-nums">1,245,000</td></tr>
+          <tr data-region="华东" data-category="家居"><td style="padding:6px 12px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.1)">华东</td><td style="padding:6px 12px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.1)">家居</td><td style="padding:6px 12px;color:#aee1ff;text-align:right;font-variant-numeric:tabular-nums">1,680,000</td></tr>
+          <tr data-region="华东" data-category="美妆"><td style="padding:6px 12px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.1)">华东</td><td style="padding:6px 12px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.1)">美妆</td><td style="padding:6px 12px;color:#aee1ff;text-align:right;font-variant-numeric:tabular-nums">1,096,000</td></tr>
+          <tr data-region="华南" data-category="服装"><td style="padding:6px 12px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.1)">华南</td><td style="padding:6px 12px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.1)">服装</td><td style="padding:6px 12px;color:#aee1ff;text-align:right;font-variant-numeric:tabular-nums">1,920,000</td></tr>
+          <tr data-region="华南" data-category="数码"><td style="padding:6px 12px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.1)">华南</td><td style="padding:6px 12px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.1)">数码</td><td style="padding:6px 12px;color:#aee1ff;text-align:right;font-variant-numeric:tabular-nums">1,560,000</td></tr>
+          <tr data-region="华南" data-category="食品"><td style="padding:6px 12px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.1)">华南</td><td style="padding:6px 12px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.1)">食品</td><td style="padding:6px 12px;color:#aee1ff;text-align:right;font-variant-numeric:tabular-nums">980,000</td></tr>
+          <tr data-region="华南" data-category="家居"><td style="padding:6px 12px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.1)">华南</td><td style="padding:6px 12px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.1)">家居</td><td style="padding:6px 12px;color:#aee1ff;text-align:right;font-variant-numeric:tabular-nums">1,120,000</td></tr>
+          <tr data-region="华南" data-category="美妆"><td style="padding:6px 12px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.1)">华南</td><td style="padding:6px 12px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.1)">美妆</td><td style="padding:6px 12px;color:#aee1ff;text-align:right;font-variant-numeric:tabular-nums">600,000</td></tr>
+          <tr data-region="华北" data-category="服装"><td style="padding:6px 12px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.1)">华北</td><td style="padding:6px 12px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.1)">服装</td><td style="padding:6px 12px;color:#aee1ff;text-align:right;font-variant-numeric:tabular-nums">1,780,000</td></tr>
+          <tr data-region="华北" data-category="数码"><td style="padding:6px 12px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.1)">华北</td><td style="padding:6px 12px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.1)">数码</td><td style="padding:6px 12px;color:#aee1ff;text-align:right;font-variant-numeric:tabular-nums">1,340,000</td></tr>
+          <tr data-region="华北" data-category="食品"><td style="padding:6px 12px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.1)">华北</td><td style="padding:6px 12px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.1)">食品</td><td style="padding:6px 12px;color:#aee1ff;text-align:right;font-variant-numeric:tabular-nums">890,000</td></tr>
+          <tr data-region="华北" data-category="家居"><td style="padding:6px 12px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.1)">华北</td><td style="padding:6px 12px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.1)">家居</td><td style="padding:6px 12px;color:#aee1ff;text-align:right;font-variant-numeric:tabular-nums">760,000</td></tr>
+          <tr data-region="华北" data-category="美妆"><td style="padding:6px 12px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.1)">华北</td><td style="padding:6px 12px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.1)">美妆</td><td style="padding:6px 12px;color:#aee1ff;text-align:right;font-variant-numeric:tabular-nums">570,000</td></tr>
+          <tr data-region="西南" data-category="服装"><td style="padding:6px 12px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.1)">西南</td><td style="padding:6px 12px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.1)">服装</td><td style="padding:6px 12px;color:#aee1ff;text-align:right;font-variant-numeric:tabular-nums">1,150,000</td></tr>
+          <tr data-region="西南" data-category="数码"><td style="padding:6px 12px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.1)">西南</td><td style="padding:6px 12px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.1)">数码</td><td style="padding:6px 12px;color:#aee1ff;text-align:right;font-variant-numeric:tabular-nums">680,000</td></tr>
+          <tr data-region="西南" data-category="食品"><td style="padding:6px 12px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.1)">西南</td><td style="padding:6px 12px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.1)">食品</td><td style="padding:6px 12px;color:#aee1ff;text-align:right;font-variant-numeric:tabular-nums">520,000</td></tr>
+          <tr data-region="西南" data-category="家居"><td style="padding:6px 12px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.1)">西南</td><td style="padding:6px 12px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.1)">家居</td><td style="padding:6px 12px;color:#aee1ff;text-align:right;font-variant-numeric:tabular-nums">430,000</td></tr>
+          <tr data-region="西南" data-category="美妆"><td style="padding:6px 12px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.1)">西南</td><td style="padding:6px 12px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.1)">美妆</td><td style="padding:6px 12px;color:#aee1ff;text-align:right;font-variant-numeric:tabular-nums">435,000</td></tr>
+          <tr data-region="华中" data-category="服装"><td style="padding:6px 12px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.1)">华中</td><td style="padding:6px 12px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.1)">服装</td><td style="padding:6px 12px;color:#aee1ff;text-align:right;font-variant-numeric:tabular-nums">1,560,000</td></tr>
+          <tr data-region="华中" data-category="数码"><td style="padding:6px 12px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.1)">华中</td><td style="padding:6px 12px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.1)">数码</td><td style="padding:6px 12px;color:#aee1ff;text-align:right;font-variant-numeric:tabular-nums">990,000</td></tr>
+          <tr data-region="华中" data-category="食品"><td style="padding:6px 12px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.1)">华中</td><td style="padding:6px 12px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.1)">食品</td><td style="padding:6px 12px;color:#aee1ff;text-align:right;font-variant-numeric:tabular-nums">870,000</td></tr>
+          <tr data-region="华中" data-category="家居"><td style="padding:6px 12px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.1)">华中</td><td style="padding:6px 12px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.1)">家居</td><td style="padding:6px 12px;color:#aee1ff;text-align:right;font-variant-numeric:tabular-nums">780,000</td></tr>
+          <tr data-region="华中" data-category="美妆"><td style="padding:6px 12px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.1)">华中</td><td style="padding:6px 12px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.1)">美妆</td><td style="padding:6px 12px;color:#aee1ff;text-align:right;font-variant-numeric:tabular-nums">690,000</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p id="filterCount" class="dim2" style="font-size:12px;margin:10px 0 0 0;text-align:right">共 25 行</p>
+  </div>
+  <div class="notes">这里可以交互演示过滤效果——选择地区和品类，下方表格实时更新。实际 API 设计中，过滤条件就是 WHERE 和 HAVING 子句的组合。翻下一页看<b>排序</b>。</div>
+<div class="deck-footer"><span class="dim2">数据应用部 · 苏焕雄</span><span class="slide-number" data-current="8" data-total="12"></span></div>
+</section>
+
+<style>
+.filter-tag {
+  display:inline-block;
+  padding:5px 14px;
+  border-radius:3px;
+  font-size:13px;
+  font-weight:600;
+  cursor:pointer;
+  border:1px solid rgba(190,220,255,.3);
+  background:rgba(255,255,255,.05);
+  color:#b8d4f0;
+  transition:all .15s;
+  font-family:'Inter','Noto Sans SC',sans-serif;
+}
+.filter-tag:hover { background:rgba(174,225,255,.12); }
+.filter-tag.filter-active {
+  background:rgba(174,225,255,.2);
+  color:#fff;
+  border-color:rgba(174,225,255,.6);
+}
+</style>
+<script>
+function toggleFilter(el){
+  var group = el.getAttribute('data-filter');
+  var siblings = el.parentElement.querySelectorAll('[data-filter="'+group+'"]');
+  siblings.forEach(function(s){ s.classList.remove('filter-active'); });
+  el.classList.add('filter-active');
+  applyFilters();
+}
+function applyFilters(){
+  var region = document.querySelector('[data-filter="region"].filter-active').getAttribute('data-val');
+  var category = document.querySelector('[data-filter="category"].filter-active').getAttribute('data-val');
+  var rows = document.querySelectorAll('#filterBody tr');
+  var count = 0;
+  rows.forEach(function(r){
+    var rv = r.getAttribute('data-region');
+    var cv = r.getAttribute('data-category');
+    var show = (region===''||rv===region) && (category===''||cv===category);
+    r.style.display = show ? '' : 'none';
+    if(show) count++;
+  });
+  document.getElementById('filterCount').textContent = '共 ' + count + ' 行';
+}
+</script>
+
+<!-- ==================== 9. 排序 ==================== -->
+<section class="slide" data-title="排序" style="justify-content:flex-start;padding-top:56px">
+  <div class="deck-header"><span>语义模型架构解析</span></div>
+  <p class="kicker" style="color:#8ef0a6;margin-bottom:4px">04 · 排序</p>
+  <h2 class="h2" style="margin-bottom:4px">结果怎么排？</h2>
+  <p class="lede dim" style="font-size:17px;margin-bottom:0">排序对应 SQL 的 <span class="badge badge-sort" style="font-size:13px;padding:2px 10px">ORDER BY</span>，用户常说"Top N"、"从高到低"。</p>
+
+  <div class="grid g2 mt-s" style="align-items:start;gap:20px">
+    <div class="concept-card" style="padding:16px 20px">
+      <span class="label" style="margin-bottom:6px">排序方式</span>
+      <div class="stack" style="gap:8px">
+        <div class="row" style="gap:10px"><span class="badge badge-sort" style="font-size:12px;padding:3px 10px">DESC</span><span class="dim" style="font-size:13px">从高到低、从大到小</span></div>
+        <div class="row" style="gap:10px"><span class="badge badge-sort" style="font-size:12px;padding:3px 10px">ASC</span><span class="dim" style="font-size:13px">从小到大、从低到高</span></div>
+        <div class="row" style="gap:10px"><span class="badge badge-sort" style="font-size:12px;padding:3px 10px">Top-N</span><span class="dim" style="font-size:13px">取前 N 条，配合 LIMIT</span></div>
+      </div>
+    </div>
+    <div class="concept-card" style="padding:16px 20px">
+      <span class="label" style="margin-bottom:6px">按什么排</span>
+      <div class="stack" style="gap:6px">
+        <span class="badge badge-sort" style="font-size:12px;padding:3px 10px">按指标排</span>
+        <span class="dim" style="font-size:13px">销售额前 10 名、利润率最高</span>
+        <span class="badge badge-sort" style="font-size:12px;padding:3px 10px">按维度排</span>
+        <span class="dim" style="font-size:13px">按日期先后、按地区名称</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="sql-block mt-s">
+    <span class="cmt">-- 销售额最高的 10 个品类，降序排列</span><br>
+    <span class="kw">SELECT</span> <span class="tbl">category</span>, <span class="fn">SUM</span>(<span class="tbl">amount</span>) <span class="kw">AS</span> <span class="tbl">sales</span><br>
+    <span class="kw">FROM</span> <span class="tbl">dw.dwd_order_info</span><br>
+    <span class="kw">GROUP BY</span> <span class="tbl">category</span><br>
+    <span class="kw">ORDER BY</span> <span class="tbl">sales</span> <span class="kw">DESC</span> <span class="cmt">← 按指标降序</span><br>
+    <span class="kw">LIMIT</span> <span class="num">10</span> <span class="cmt">← Top-N</span>
+  </div>
+  <div class="notes"><b>排序</b>对应 SQL 的 ORDER BY 和 LIMIT。用户常说"Top N""从高到低"。可以按指标排——销售额前10名，也可以按维度排——按日期先后。翻下一页看交互演示。</div>
+<div class="deck-footer"><span class="dim2">数据应用部 · 苏焕雄</span><span class="slide-number" data-current="9" data-total="12"></span></div>
+</section>
+<section class="slide" data-title="排序案例" style="justify-content:flex-start;padding-top:36px">
+  <div class="deck-header"><span>语义模型架构解析</span></div>
+  <p class="kicker" style="color:#8ef0a6;margin-bottom:4px">04 · 排序案例</p>
+  <h2 class="h2" style="margin-bottom:4px">结果怎么排？</h2>
+  <p class="lede dim" style="font-size:15px;margin-bottom:0">选择排序方式，或限定只看前几条。</p>
+
+  <div class="mt-s" style="background:rgba(255,255,255,.04);border:1px dashed rgba(190,220,255,.25);border-radius:4px;padding:16px 20px">
+    <div class="row" style="align-items:center;gap:14px;margin-bottom:10px">
+      <span class="dim" style="font-size:13px;font-weight:600;color:#ff8a96">排序</span>
+      <button class="sort-tag sort-active" data-sort="sales-desc" onclick="toggleSort(this)">销售额 ↓ 从高到低</button>
+      <button class="sort-tag" data-sort="sales-asc" onclick="toggleSort(this)">销售额 ↑ 从低到高</button>
+      <button class="sort-tag" data-sort="category" onclick="toggleSort(this)">品类 A→Z</button>
+    </div>
+    <div class="row" style="align-items:center;gap:14px;margin-bottom:14px">
+      <span class="dim" style="font-size:13px;font-weight:600;color:#ff8a96">Top-N</span>
+      <button class="top-tag top-active" data-top="" onclick="toggleTop(this)">全部</button>
+      <button class="top-tag" data-top="3" onclick="toggleTop(this)">前 3</button>
+      <button class="top-tag" data-top="5" onclick="toggleTop(this)">前 5</button>
+      <button class="top-tag" data-top="10" onclick="toggleTop(this)">前 10</button>
+    </div>
+    <div style="overflow-x:auto">
+      <table id="sortTable" style="width:100%;border-collapse:collapse;font-size:13px">
+        <thead><tr><th style="color:#8ef0a6;padding:8px 12px;text-align:left;border-bottom:2px solid rgba(142,240,166,.3);font-weight:600">品类</th><th style="color:#aee1ff;padding:8px 12px;text-align:right;border-bottom:2px solid rgba(142,240,166,.3);font-weight:600">销售额</th></tr></thead>
+        <tbody id="sortBody">
+          <tr data-category="男装" data-sales="4562000"><td style="padding:6px 12px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.1)">男装</td><td style="padding:6px 12px;color:#aee1ff;text-align:right;font-variant-numeric:tabular-nums">4,562,000</td></tr>
+          <tr data-category="女装" data-sales="4411000"><td style="padding:6px 12px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.1)">女装</td><td style="padding:6px 12px;color:#aee1ff;text-align:right;font-variant-numeric:tabular-nums">4,411,000</td></tr>
+          <tr data-category="手机" data-sales="3820000"><td style="padding:6px 12px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.1)">手机</td><td style="padding:6px 12px;color:#aee1ff;text-align:right;font-variant-numeric:tabular-nums">3,820,000</td></tr>
+          <tr data-category="电脑" data-sales="2730000"><td style="padding:6px 12px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.1)">电脑</td><td style="padding:6px 12px;color:#aee1ff;text-align:right;font-variant-numeric:tabular-nums">2,730,000</td></tr>
+          <tr data-category="零食" data-sales="2150000"><td style="padding:6px 12px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.1)">零食</td><td style="padding:6px 12px;color:#aee1ff;text-align:right;font-variant-numeric:tabular-nums">2,150,000</td></tr>
+          <tr data-category="饮料" data-sales="2355000"><td style="padding:6px 12px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.1)">饮料</td><td style="padding:6px 12px;color:#aee1ff;text-align:right;font-variant-numeric:tabular-nums">2,355,000</td></tr>
+          <tr data-category="家具" data-sales="2980000"><td style="padding:6px 12px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.1)">家具</td><td style="padding:6px 12px;color:#aee1ff;text-align:right;font-variant-numeric:tabular-nums">2,980,000</td></tr>
+          <tr data-category="厨具" data-sales="1290000"><td style="padding:6px 12px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.1)">厨具</td><td style="padding:6px 12px;color:#aee1ff;text-align:right;font-variant-numeric:tabular-nums">1,290,000</td></tr>
+          <tr data-category="护肤" data-sales="1860000"><td style="padding:6px 12px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.1)">护肤</td><td style="padding:6px 12px;color:#aee1ff;text-align:right;font-variant-numeric:tabular-nums">1,860,000</td></tr>
+          <tr data-category="彩妆" data-sales="1531000"><td style="padding:6px 12px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.1)">彩妆</td><td style="padding:6px 12px;color:#aee1ff;text-align:right;font-variant-numeric:tabular-nums">1,531,000</td></tr>
+          <tr data-category="运动鞋" data-sales="3210000"><td style="padding:6px 12px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.1)">运动鞋</td><td style="padding:6px 12px;color:#aee1ff;text-align:right;font-variant-numeric:tabular-nums">3,210,000</td></tr>
+          <tr data-category="箱包" data-sales="1980000"><td style="padding:6px 12px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.1)">箱包</td><td style="padding:6px 12px;color:#aee1ff;text-align:right;font-variant-numeric:tabular-nums">1,980,000</td></tr>
+          <tr data-category="母婴" data-sales="1670000"><td style="padding:6px 12px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.1)">母婴</td><td style="padding:6px 12px;color:#aee1ff;text-align:right;font-variant-numeric:tabular-nums">1,670,000</td></tr>
+          <tr data-category="图书" data-sales="1120000"><td style="padding:6px 12px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.1)">图书</td><td style="padding:6px 12px;color:#aee1ff;text-align:right;font-variant-numeric:tabular-nums">1,120,000</td></tr>
+          <tr data-category="宠物" data-sales="890000"><td style="padding:6px 12px;color:#d4e6ff;border-bottom:1px dashed rgba(190,220,255,.1)">宠物</td><td style="padding:6px 12px;color:#aee1ff;text-align:right;font-variant-numeric:tabular-nums">890,000</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p id="sortCount" class="dim2" style="font-size:12px;margin:10px 0 0 0;text-align:right">共 15 行</p>
+  </div>
+  <div class="notes">交互演示排序效果——选择排序方式，表格实时重排；选择 Top-N，只显示前几条。翻下一页看<b>总结</b>。</div>
+<div class="deck-footer"><span class="dim2">数据应用部 · 苏焕雄</span><span class="slide-number" data-current="10" data-total="12"></span></div>
+</section>
+
+<style>
+.sort-tag,.top-tag {
+  display:inline-block;
+  padding:5px 14px;
+  border-radius:3px;
+  font-size:13px;
+  font-weight:600;
+  cursor:pointer;
+  border:1px solid rgba(190,220,255,.3);
+  background:rgba(255,255,255,.05);
+  color:#b8d4f0;
+  transition:all .15s;
+  font-family:'Inter','Noto Sans SC',sans-serif;
+}
+.sort-tag:hover,.top-tag:hover { background:rgba(174,225,255,.12); }
+.sort-tag.sort-active,.top-tag.top-active {
+  background:rgba(255,138,150,.2);
+  color:#fff;
+  border-color:rgba(255,138,150,.6);
+}
+</style>
+<script>
+function toggleSort(el){
+  var siblings = el.parentElement.querySelectorAll('.sort-tag');
+  siblings.forEach(function(s){ s.classList.remove('sort-active'); });
+  el.classList.add('sort-active');
+  renderSortTable();
+}
+function toggleTop(el){
+  var siblings = el.parentElement.querySelectorAll('.top-tag');
+  siblings.forEach(function(s){ s.classList.remove('top-active'); });
+  el.classList.add('top-active');
+  renderSortTable();
+}
+function renderSortTable(){
+  var tbody = document.getElementById('sortBody');
+  var rows = Array.from(tbody.querySelectorAll('tr'));
+  var sortBy = document.querySelector('.sort-tag.sort-active').getAttribute('data-sort');
+  var topVal = document.querySelector('.top-tag.top-active').getAttribute('data-top');
+  rows.sort(function(a,b){
+    if(sortBy==='sales-desc') return parseInt(b.getAttribute('data-sales')) - parseInt(a.getAttribute('data-sales'));
+    if(sortBy==='sales-asc') return parseInt(a.getAttribute('data-sales')) - parseInt(b.getAttribute('data-sales'));
+    if(sortBy==='category') return a.getAttribute('data-category').localeCompare(b.getAttribute('data-category'));
+  });
+  var limit = topVal==='' ? rows.length : parseInt(topVal);
+  var visible = 0;
+  rows.forEach(function(r,i){
+    var show = i < limit;
+    r.style.display = show ? '' : 'none';
+    if(show) visible++;
+    tbody.appendChild(r);
+  });
+  document.getElementById('sortCount').textContent = '共 ' + visible + ' 行';
+}
+</script>
+
+<!-- ==================== 11. 总结 ==================== -->
+<section class="slide" data-title="总结" style="justify-content:flex-start;padding-top:32px">
+  <div class="deck-header"><span>语义模型架构解析</span></div>
+  <p class="kicker" style="color:#8ef0a6;margin-bottom:4px">summary</p>
+  <h2 class="h2" style="margin-bottom:4px">一句问数，拆成四件事</h2>
+
+  <div class="card mt-s" style="padding:2px 4px;background:rgba(255,255,255,.04)">
+    <table class="summary-table">
+      <thead>
+        <tr>
+          <th style="width:12%">概念</th>
+          <th style="width:22%">回答的问题</th>
+          <th style="width:30%">用户怎么说</th>
+          <th style="width:18%">SQL 对应</th>
+          <th style="width:18%">举例</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="badge badge-metric">指标</span></td>
+          <td>要算什么数？</td>
+          <td>有多少、卖了多少、占比</td>
+          <td class="sql-col">SELECT + 聚合</td>
+          <td>SUM(销售额)</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-dim">维度</span></td>
+          <td>按什么分组？</td>
+          <td>各个、按、每种、每个</td>
+          <td class="sql-col">GROUP BY</td>
+          <td>地区、月份、品类</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-filter">过滤</span></td>
+          <td>看哪些数据？</td>
+          <td>只看、只要、限定在</td>
+          <td class="sql-col">WHERE / HAVING</td>
+          <td>地区 = '华东'</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-sort">排序</span></td>
+          <td>结果怎么排？</td>
+          <td>前 N 名、从高到低</td>
+          <td class="sql-col">ORDER BY + LIMIT</td>
+          <td>按销售额 DESC</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="sql-block mt-s" style="font-size:14px">
+    <span class="cmt">-- 一句话："华东地区 2024 年各品类销售额前 5 名"</span><br>
+    <span class="kw">SELECT</span> <span class="tbl">category</span>, <span class="fn">SUM</span>(<span class="tbl">amount</span>) <span class="kw">AS</span> <span class="tbl">sales</span>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span class="cmt">↑ 维度</span><span style="margin-left:30px">↑ 指标</span><br>
+    <span class="kw">FROM</span> <span class="tbl">dw.dwd_order_info</span><br>
+    <span class="kw">WHERE</span> <span class="tbl">region</span> = <span class="str">'华东'</span> <span class="kw">AND</span> <span class="tbl">year</span> = <span class="num">2024</span>
+    &nbsp;<span class="cmt">← 过滤条件</span><br>
+    <span class="kw">GROUP BY</span> <span class="tbl">category</span>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cmt">← 维度</span><br>
+    <span class="kw">ORDER BY</span> <span class="tbl">sales</span> <span class="kw">DESC</span>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cmt">← 排序</span><br>
+    <span class="kw">LIMIT</span> <span class="num">5</span>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cmt">← 排序 (Top-N)</span>
+  </div>
+  <div class="notes">总结：一句问数，拆成四件事。<b>指标</b>——要算什么数（SELECT+聚合），<b>维度</b>——按什么分组（GROUP BY），<b>过滤条件</b>——看哪些数据（WHERE/HAVING），<b>排序</b>——结果怎么排（ORDER BY+LIMIT）。用户说一句"华东地区各品类销售额前5名"，后端就是这四个概念组合。谢谢大家，有问题欢迎交流。</div>
+<div class="deck-footer"><span class="dim2">数据应用部 · 苏焕雄</span><span class="slide-number" data-current="11" data-total="12"></span></div>
+</section>
+
+<!-- ==================== 11. 结束 ==================== -->
+<section class="slide center tc" data-title="Q and A">
+  <div class="deck-header"><span>语义模型架构解析</span></div>
+  <div>
+    <div style="font-size:100px;color:rgba(255,255,255,.3);font-weight:800;letter-spacing:-.04em">💬</div>
+    <h2 class="h2">感谢聆听，欢迎交流</h2>
+    <p class="lede dim">维度与指标只是起点，期待和大家一起深入探讨。</p>
+    <p class="kicker" style="margin-top:16px;font-size:24px">数据应用部 · 苏焕雄</p>
+  </div>
+  <div class="notes">感谢大家的时间。维度、指标、过滤、排序这四个概念是语义模型 API 的基础，后续还有更多细节值得深入探讨。有问题欢迎随时交流。</div>
+<div class="deck-footer"><span class="dim2">数据应用部 · 苏焕雄</span><span class="slide-number" data-current="12" data-total="12"></span></div>
+</section>
+
+</div>
+<script src="assets/runtime.js"></script>
+</body>
+</html>
