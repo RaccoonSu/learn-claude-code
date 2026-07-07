@@ -6,6 +6,12 @@
       "sourceType": "github",
       "skillPath": "SKILL.md",
       "computedHash": "4db529868aecf8e6565edb85e108112c68f033a4b4e1d9b4c595e922a284b5a0"
+    },
+    "html-to-pptx": {
+      "source": "nlj626/html-to-pptx",
+      "sourceType": "github",
+      "skillPath": "SKILL.md",
+      "computedHash": ""
     }
   }
 }
