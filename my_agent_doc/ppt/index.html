@@ -71,7 +71,7 @@ h2.h2{font-size:64px!important}h4{font-size:24px!important}
     <h1 class="h1 anim-fade-up" data-anim="fade-up">AI 风控官<br><span class="gradient-text">Agent 架构全解析</span></h1>
     <p class="kicker" style="margin-top:12px">数据应用部 · 苏焕雄</p>
     <p class="lede mt-m">Agent Loop · 主子Agent · Skill · 语义模型 · 图表工具 · 卡片工具</p>
-    <div class="deck-footer"><span class="dim2">Agent Architecture · 6 Topics</span><span class="slide-number" data-current="1" data-total="24"></span></div>
+    <div class="deck-footer"><span class="dim2">Agent Architecture · 6 Topics</span><span class="slide-number" data-current="1" data-total="25"></span></div>
   </div>
   <div class="notes">今天给大家分享一下 <b>AI Agent 的架构设计</b>。一共讲六个模块：Agent Loop、主子Agent、Skill 技能、语义模型、图表工具、还有卡片工具。我们先从 <b>Agent Loop</b> 开始。</div>
 </section>
@@ -86,13 +86,13 @@ h2.h2{font-size:64px!important}h4{font-size:24px!important}
     <h1 class="h1">传统 AI 助手会<span style="color:var(--text-3)">回答，</span><br>Agent 会<span style="color:var(--accent-3)">动手。</span></h1>
   </div>
   <div class="notes">我们先思考一个问题，传统 AI 助手（比如豆包）和 Agent（比如 AI 风控官、龙虾、还有开发常用的编程 agent） 到底有什么区别？——<b>传统 AI 助手它会回答用户的问题，但不会干活，而Agent 它会动手干活</b>。这是最核心的区别。下面我们看一个具体的例子。</div>
-<div class="deck-footer"><span class="dim2">数据应用部 · 苏焕雄</span><span class="slide-number" data-current="2" data-total="24"></span></div>
+<div class="deck-footer"><span class="dim2">数据应用部 · 苏焕雄</span><span class="slide-number" data-current="2" data-total="25"></span></div>
 </section>
 
 <!-- 2.2 Agent Loop - 区别对比 -->
 <section class="slide" data-title="Agent Loop · 区别">
   <div class="deck-header"><span>AI 风控官 · Agent Loop</span></div>
-  <p class="kicker">第 1 步 · 先看清区别</p>
+  <p class="kicker">01 · 先看清区别</p>
   <h2 class="h2">同样一个问题，差别在哪？</h2>
   <p class="lede" style="margin-bottom:12px">用户问："把这个月的销售订单汇总，找出销售额前三的产品，做成一份简报。"</p>
   <div class="grid g2">
@@ -131,13 +131,13 @@ h2.h2{font-size:64px!important}h4{font-size:24px!important}
     💡 <b style="color:var(--accent-3)"></b>传统 AI 助手给完建议就走；Agent 是用户交代一次任务，它自己干到底、再交付。
   </div>
   <div class="notes">接下来我们看一个具体的案例：<b>传统 AI 助手给完建议就走，Agent 是说一次它自己干到底</b>。你看左边的传统AI，它就说你可以打开订单表、用透视表汇总、排序取前三，给完建议就停了，等你操作。右边的 Agent 呢？它自己打开订单表、读到八百多条订单，自己汇总排序，最后直接把简报交给你——前三各占多少、总占比、还给分析建议。全程你就说了一句话。所以 Agent 和 Chatbot 的本质区别就在于——一个给建议，一个出结果。那 Agent 是怎么做到自己干到底的？翻下一页看原理。</div>
-<div class="deck-footer"><span class="dim2">数据应用部 · 苏焕雄</span><span class="slide-number" data-current="3" data-total="24"></span></div>
+<div class="deck-footer"><span class="dim2">数据应用部 · 苏焕雄</span><span class="slide-number" data-current="3" data-total="25"></span></div>
 </section>
 
 <!-- 2.3 Agent Loop - 原理 SVG -->
 <section class="slide" data-title="Agent Loop · 原理">
   <div class="deck-header"><span>AI 风控官 · Agent Loop</span></div>
-  <p class="kicker">第 2 步 · AGENT 核心架构</p>
+  <p class="kicker">02 · AGENT 核心架构</p>
   <h2 class="h2" style="font-size:36px;margin-bottom:8px">所谓 Agent，本质就是一个"循环"</h2>
   <div style="max-width:900px;width:100%;align-self:center">
     <svg viewBox="0 0 720 540" style="width:100%;height:auto;display:block" font-family="system-ui, -apple-system, 'PingFang SC', sans-serif">
@@ -187,13 +187,13 @@ h2.h2{font-size:64px!important}h4{font-size:24px!important}
     </svg>
   </div>
   <div class="notes">Agent 是怎么做到自己干到底的？秘密就在这张图。agent 进入循环后，它就只有两个状态——要调工具，和不需要调。你看菱形那里，要的话就去查数据跑计算看结果，记下来再想下一步，形成循环。不要就说明干完了，给答复。所以 Agent 底层逻辑很简单——<b>一个循环加一个工具，等于一个 Agent</b>。翻下一页看真实例子。</div>
-<div class="deck-footer"><span class="dim2">数据应用部 · 苏焕雄</span><span class="slide-number" data-current="4" data-total="24"></span></div>
+<div class="deck-footer"><span class="dim2">数据应用部 · 苏焕雄</span><span class="slide-number" data-current="4" data-total="25"></span></div>
 </section>
 
 <!-- 2.4 Agent Loop - 真实例子 + 价值 + 总结 -->
 <section class="slide" data-title="Agent Loop · 实战">
   <div class="deck-header"><span>AI 风控官 · Agent Loop</span></div>
-  <p class="kicker">第 3 步 · 看真实例子</p>
+  <p class="kicker">03 · 看真实例子</p>
   <h2 class="h2">它在真实任务里是怎么"自己跑"的？</h2>
   <div style="font-size:13px;color:var(--text-3);margin-bottom:12px">用户交代："把本月销售订单汇总，找出销售额前三，做成简报。"</div>
   <div class="grid g2 mt-s">
@@ -218,7 +218,7 @@ h2.h2{font-size:64px!important}h4{font-size:24px!important}
     </div>
   </div>
   <div class="notes">还是那个销售订单任务。Agent 第一步想了一下先打开订单表。第二步看到八百多条数据，自己决定要汇总排序。第三步再次动手计算排名。第四步看到结果写成简报交给你。四步下来全程一句话没多说。对业务来说：从"一问一答"升级到<b>"一问到底"</b>——Agent 能拆解、执行、纠错，不需要人传话。报表、核查、运维，从人做变 Agent 做。好，接下来看<b>主子 Agent 架构</b>。</div>
-<div class="deck-footer"><span class="dim2">数据应用部 · 苏焕雄</span><span class="slide-number" data-current="5" data-total="24"></span></div>
+<div class="deck-footer"><span class="dim2">数据应用部 · 苏焕雄</span><span class="slide-number" data-current="5" data-total="25"></span></div>
 </section>
 
 <!-- ════════════════════════════════════════════  主子AGENT  ═══════════════════ -->
@@ -231,13 +231,13 @@ h2.h2{font-size:64px!important}h4{font-size:24px!important}
     <p class="lede mt-l">AI 怎么像一个专家委员会，让市场研判、经营分析、客商履约<br>各路专家分头研判、汇总结论。</p>
   </div>
   <div class="notes">好，第二个模块——<b>主子 Agent 架构</b>。核心思想很简单：大事拆小，像专家委员会一样分域会诊。</div>
-<div class="deck-footer"><span class="dim2">数据应用部 · 苏焕雄</span><span class="slide-number" data-current="6" data-total="24"></span></div>
+<div class="deck-footer"><span class="dim2">数据应用部 · 苏焕雄</span><span class="slide-number" data-current="6" data-total="25"></span></div>
 </section>
 
 <!-- 3.2 主子Agent - 为什么要拆 -->
 <section class="slide" data-title="主子Agent · 为什么拆">
   <div class="deck-header"><span>AI 风控官 · 主子 Agent 架构</span></div>
-  <p class="kicker">第 1 步 · 先看为什么要拆</p>
+  <p class="kicker">01 · 先看为什么要拆</p>
   <h2 class="h2">一个 AI 啥都管，为什么看不深、还健忘？</h2>
   <p class="lede">让一个 AI 同时懂市场、懂经营、又懂履约，它的脑袋会被各种中间过程塞满——哪个领域都看不深，还会走神、忘记最初要研判什么。就像一个人想同时当三个专家，结果哪个都不精。</p>
   <div class="grid g2 mt-m">
@@ -253,13 +253,13 @@ h2.h2{font-size:64px!important}h4{font-size:24px!important}
     </div>
   </div>
   <div class="notes">为什么要把事拆开？你想，让一个 AI 同时懂市场、懂经营、又懂履约，脑袋里要装的东西太多了——读的数据、算的过程、各种试错来回，塞得满满的。结果每个领域都只能浅尝辄止，还容易走神、忘了最初要研判什么。怎么办？<b>拆</b>！市场交给市场专家，经营交给经营专家，履约交给履约专家。每位专家只盯自己那块，用自己的专业口径深挖，做完只汇报结论。主管拿各方结论做综合判断。翻下一页看架构图。</div>
-<div class="deck-footer"><span class="dim2">数据应用部 · 苏焕雄</span><span class="slide-number" data-current="7" data-total="24"></span></div>
+<div class="deck-footer"><span class="dim2">数据应用部 · 苏焕雄</span><span class="slide-number" data-current="7" data-total="25"></span></div>
 </section>
 
 <!-- 3.3 主子Agent - 架构 SVG -->
 <section class="slide" data-title="主子Agent · 架构">
   <div class="deck-header"><span>AI 风控官 · 主子 Agent 架构</span></div>
-  <p class="kicker">第 2 步 · 一张图看懂架构</p>
+  <p class="kicker">02 · 一张图看懂架构</p>
   <h2 class="h2" style="font-size:36px;margin-bottom:8px">统筹派活，分域专家研判，汇报结论</h2>
   <div style="max-width:900px;width:100%;align-self:center">
     <svg viewBox="0 0 720 400" style="width:100%;height:auto;display:block" font-family="system-ui, -apple-system, 'PingFang SC', sans-serif">
@@ -297,13 +297,13 @@ h2.h2{font-size:64px!important}h4{font-size:24px!important}
     </svg>
   </div>
   <div class="notes">看图。最上面是<b>统筹——主 Agent</b>，派活和汇总结论。下面三位子 Agent：市场研判专家分析市场价格，经营分析专家分析内部经营数据，客商履约专家分析客户履约情况和风险。蓝色箭头往下是拆分任务，橙色虚线往上是汇报结论。每位专家在自己擅长的领域独立研判，做完<b>只把该领域的结论交回统筹</b>，中间过程全部丢弃。翻下一页看两个关键设计。</div>
-<div class="deck-footer"><span class="dim2">数据应用部 · 苏焕雄</span><span class="slide-number" data-current="8" data-total="24"></span></div>
+<div class="deck-footer"><span class="dim2">数据应用部 · 苏焕雄</span><span class="slide-number" data-current="8" data-total="25"></span></div>
 </section>
 
 <!-- 3.4 主子Agent - 两个关键设计 + 实战 -->
 <section class="slide" data-title="主子Agent · 关键设计">
   <div class="deck-header"><span>AI 风控官 · 主子 Agent 架构</span></div>
-  <p class="kicker">第 3 步 · 为什么这样设计 + 实战</p>
+  <p class="kicker">03 · 为什么这样设计 + 实战</p>
   <h2 class="h2">两个关键设计，让它真的像个专家委员会</h2>
   <div class="grid g2 mt-m">
     <div class="card card-accent">
@@ -327,7 +327,7 @@ h2.h2{font-size:64px!important}h4{font-size:24px!important}
     <div class="bubble done" style="max-width:75%"><span class="who">🧑‍💼 统筹</span>综合三方：<b>「外部承压下的增收不增利」</b>，建议控成本、盯回款、守份额。</div>
   </div>
   <div class="notes">两个关键设计。第一，<b>子Agent 独立上下文空间</b>——每位专家有独立的上下文和专业口径，互不干扰，独立研判。第二，<b>主Agent 与子Agent 上下文隔离</b>——子Agent 只回结论，仅保留关键结论，中间数据全部清除，主 agent上下文不受污染。看下面案例：用户说研判本季度经营状况，统筹派给三位专家。市场研判专家回报外部承压，经营分析专家回报增收不增利，客商履约专家回报局部回款风险。统筹综合三方得出最终判断——外部承压下的增收不增利，建议控成本、盯回款、守份额。好，接下来讲<b>Skill 技能</b>。</div>
-<div class="deck-footer"><span class="dim2">数据应用部 · 苏焕雄</span><span class="slide-number" data-current="9" data-total="24"></span></div>
+<div class="deck-footer"><span class="dim2">数据应用部 · 苏焕雄</span><span class="slide-number" data-current="9" data-total="25"></span></div>
 </section>
 
 <!-- ════════════════════════════════════════════  SKILL  ═══════════════════════ -->
@@ -340,13 +340,13 @@ h2.h2{font-size:64px!important}h4{font-size:24px!important}
     <p class="lede mt-l">Skill 是标准化能力模块，采用<b>渐进式加载</b>：<br>启动时仅加载目录索引，运行时按需激活对应 Skill，未使用的 Skill 不进入上下文窗口。</p>
   </div>
   <div class="notes">第三个模块——<b>Skill 技能</b>。Skill 是可复用的标准化指令模块。核心设计理念是<b>渐进式加载</b>：启动时仅加载目录索引，运行时按需激活对应 Skill，未使用的 Skill 不进入上下文窗口。为什么要这样设计？翻下一页。</div>
-<div class="deck-footer"><span class="dim2">数据应用部 · 苏焕雄</span><span class="slide-number" data-current="10" data-total="24"></span></div>
+<div class="deck-footer"><span class="dim2">数据应用部 · 苏焕雄</span><span class="slide-number" data-current="10" data-total="25"></span></div>
 </section>
 
 <!-- 4.2 Skill - 为什么 -->
 <section class="slide" data-title="Skill · 为什么">
   <div class="deck-header"><span>AI 风控官 · Skill 技能</span></div>
-  <p class="kicker">第 1 步 · 先搞懂一件事</p>
+  <p class="kicker">01 · 先搞懂一件事</p>
   <h2 class="h2">大模型没有记忆，每次都得重新教</h2>
   <p class="lede">大模型本身没有任何记忆，每次请求对它都是全新的开始，上次聊过什么、用户教过它怎么做，它一概不记得。所以想让它按某套口径办事，每次都得把"怎么做"重新告诉它一遍。</p>
   <div class="grid g2 mt-m">
@@ -363,13 +363,13 @@ h2.h2{font-size:64px!important}h4{font-size:24px!important}
   </div>
   <p class="dim" style="font-size:14px;margin-top:12px">Skill 就是把"怎么做"沉淀为可复用的指令模块，按需加载到上下文。以经营分析专家为例，它关联了 4 个 Skill：《财务重点经营指标分析》《风险重点监控指标分析》《库存分析》《签约数据分析》。</p>
   <div class="notes">先搞懂一件事：<b>大模型本身没有任何记忆</b>，每次请求对它都是全新的开始，上次聊过什么、教过它怎么做，它一概不记得。所以想让它按某套口径办事，每次都得把"怎么做"重新告诉它。Skill 就是把规程沉淀为可复用的指令模块。但不能每次都把所有 Skill 全加载——左边笨办法，只查经营指标却把风险监控、库存、签约全带进上下文，响应慢又容易幻觉。右边渐进式加载：先只给目录索引，很轻；专家判断是经营指标分析，只激活《财务重点经营指标分析》，其余 Skill 不进上下文。<b>用到才加载，用不到的绝不带</b>——省成本、不占上下文，也更不容易幻觉。翻下一页看架构图。</div>
-<div class="deck-footer"><span class="dim2">数据应用部 · 苏焕雄</span><span class="slide-number" data-current="11" data-total="24"></span></div>
+<div class="deck-footer"><span class="dim2">数据应用部 · 苏焕雄</span><span class="slide-number" data-current="11" data-total="25"></span></div>
 </section>
 
 <!-- 4.3 Skill - 架构 SVG -->
 <section class="slide" data-title="Skill · 架构">
   <div class="deck-header"><span>AI 风控官 · Skill 技能</span></div>
-  <p class="kicker">第 2 步 · 一张图看懂</p>
+  <p class="kicker">02 · 一张图看懂</p>
   <h2 class="h2" style="font-size:36px;margin-bottom:8px">先给目录，按需加载</h2>
   <div style="max-width:900px;width:100%;align-self:center">
     <svg viewBox="0 0 720 400" style="width:100%;height:auto;display:block" font-family="system-ui, -apple-system, 'PingFang SC', sans-serif">
@@ -407,13 +407,13 @@ h2.h2{font-size:64px!important}h4{font-size:24px!important}
     </svg>
   </div>
   <div class="notes">看图。左边是经营分析专家，关联 4 个 Skill。右边只有左上角《财务重点经营指标分析》被激活加载，橙色边框标记。其余三个全部灰色未加载。核心就是<b>按需加载</b>——只有用到的才进上下文，其余全程不进。省成本不占上下文，更不容易幻觉。翻下一页看真实场景。</div>
-<div class="deck-footer"><span class="dim2">数据应用部 · 苏焕雄</span><span class="slide-number" data-current="12" data-total="24"></span></div>
+<div class="deck-footer"><span class="dim2">数据应用部 · 苏焕雄</span><span class="slide-number" data-current="12" data-total="25"></span></div>
 </section>
 
 <!-- 4.4 Skill - 实战 + 价值 + 总结 -->
 <section class="slide" data-title="Skill · 实战">
   <div class="deck-header"><span>AI 风控官 · Skill 技能</span></div>
-  <p class="kicker">第 3 步 · 实战 + 业务价值</p>
+  <p class="kicker">03 · 实战 + 业务价值</p>
   <h2 class="h2">经营分析专家怎么用 Skill？</h2>
   <div style="font-size:13px;color:var(--text-3);margin-bottom:12px">用户交代："分析一下本月重点经营指标。"</div>
   <div class="grid g2 mt-s">
@@ -442,7 +442,7 @@ h2.h2{font-size:64px!important}h4{font-size:24px!important}
     </div>
   </div>
   <div class="notes">真实场景：用户说分析本月重点经营指标。经营分析专家判断这次是经营指标分析，激活《财务重点经营指标分析》Skill。Skill 包含三个要点：收入毛利费用率一起看、同比环比对照、圈出异动。分析完结论增收不增利。全程只激活一个 Skill。业务价值：<b>规范自动遵守</b>——方法论文档化为 Skill 指令，按需激活自动执行；<b>按需加载又省又准</b>——不预加载无关 Skill 少干扰；<b>加 Skill 就扩展</b>——新规范加一个 Skill 就行，不动 Agent 本身。好，接下来看<b>语义模型</b>。</div>
-<div class="deck-footer"><span class="dim2">数据应用部 · 苏焕雄</span><span class="slide-number" data-current="13" data-total="24"></span></div>
+<div class="deck-footer"><span class="dim2">数据应用部 · 苏焕雄</span><span class="slide-number" data-current="13" data-total="25"></span></div>
 </section>
 
 <!-- ════════════════════════════════════════════  语义模型  ═══════════════════ -->
@@ -455,13 +455,13 @@ h2.h2{font-size:64px!important}h4{font-size:24px!important}
     <p class="lede mt-l">当 AI Agent / 业务用户需要访问企业数据时，有两种截然不同的技术路径：<br>一种让 LLM 直接生成 SQL 查数据库，另一种在数据之上构建统一的语义模型层。</p>
   </div>
   <div class="notes">第四个模块，一个更底层的话题——<b>语义模型和传统文生SQL的对比</b>。当 AI Agent 需要访问企业数据时，有两条截然不同的路。一条让 LLM 直接写 SQL，另一条在数据之上构建统一的语义模型层。这是两种完全不同的信任模型，接下来我们来看下架构原理。</div>
-<div class="deck-footer"><span class="dim2">数据应用部 · 苏焕雄</span><span class="slide-number" data-current="14" data-total="24"></span></div>
+<div class="deck-footer"><span class="dim2">数据应用部 · 苏焕雄</span><span class="slide-number" data-current="14" data-total="25"></span></div>
 </section>
 
 <!-- 5.2 语义模型 - 架构对比 -->
 <section class="slide" data-title="语义模型 · 架构对比">
   <div class="deck-header"><span>AI 风控官 · 语义模型 vs 传统文生SQL</span></div>
-  <p class="kicker">第 1 层 · 架构原理</p>
+  <p class="kicker">01 · 架构原理</p>
   <h2 class="h2">两种架构，两种信任模型</h2>
   <div class="grid g2 mt-m" style="gap:16px">
     <!-- 传统文生SQL -->
@@ -500,8 +500,80 @@ h2.h2{font-size:64px!important}h4{font-size:24px!important}
     <span><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:#12a06a;margin-right:4px"></span>语义层组件</span>
     <span><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:#94a3b8;margin-right:4px"></span>数据仓库</span>
   </div>
-  <div class="notes">左边传统文生SQL，用户问"本月销售额前三的产品是哪些"，LLM 直接生成 SQL 去查数据库，中间没有核对。容易出现什么问题？意图跑偏、SQL 语法对但语义错、指标定义分散、还可能 SQL 注入越权。右边语义模型架构，多了一层——LLM 只负责把自然语言转成结构化参数，只给参数不写 SQL；<b>语义层拿到参数，结合预定义的指标、表关系和权限</b>，翻译成正确查询。同一个问题永远返回一样答案，权限也在语义层执行。核心差异就是<b>直接路径和治理路径</b>。好，接下来看<b>图表工具</b>。</div>
-<div class="deck-footer"><span class="dim2">数据应用部 · 苏焕雄</span><span class="slide-number" data-current="15" data-total="24"></span></div>
+  <div class="notes">左边传统文生SQL，用户问"本月销售额前三的产品是哪些"，LLM 直接生成 SQL 去查数据库，中间没有核对。容易出现什么问题？意图跑偏、SQL 语法对但语义错、指标定义分散、还可能 SQL 注入越权。右边语义模型架构，多了一层——LLM 只负责把自然语言转成结构化参数，只给参数不写 SQL；<b>语义层拿到参数，结合预定义的指标、表关系和权限</b>，翻译成正确查询。同一个问题永远返回一样答案，权限也在语义层执行。核心差异就是<b>直接路径和治理路径</b>。翻下一页看一个具体案例。</div>
+<div class="deck-footer"><span class="dim2">数据应用部 · 苏焕雄</span><span class="slide-number" data-current="15" data-total="25"></span></div>
+</section>
+
+<!-- 5.3 语义模型 - 案例 -->
+<section class="slide" data-title="语义模型 · 案例">
+  <div class="deck-header"><span>AI 风控官 · 语义模型 vs 传统文生SQL</span></div>
+  <p class="kicker">02 · 案例实战</p>
+  <h2 class="h2" style="font-size:22px;margin-bottom:2px">"本月销售额前三的产品是哪些？"</h2>
+  <p class="lede" style="margin-bottom:4px;font-size:13px;white-space:nowrap">用户提问 → LLM 解析参数 → 语义层翻译 SQL → 权限注入 → 返回结果</p>
+  <div class="grid g2 mt-s" style="gap:8px">
+    <div class="stack" style="gap:5px">
+      <div class="card" style="padding:6px 10px">
+        <h4 style="font-size:14px;margin-bottom:2px">① 用户提问</h4>
+        <p class="dim" style="font-size:12px;line-height:1.4">"本月销售额前三的产品是哪些？"</p>
+      </div>
+      <div class="card" style="padding:6px 10px;border-left:3px solid #7a4dff">
+        <h4 style="font-size:14px;margin-bottom:2px;color:#7a4dff">② LLM 层 · 语义解析</h4>
+        <p class="dim" style="font-size:12px;line-height:1.5">
+          识别用户意图，拆成结构化参数：<br>
+          <b>指标</b>：销售额（SUM(o.amount)）<br>
+          <b>维度</b>：产品（GROUP BY p.name）<br>
+          <b>排序</b>：降序（ORDER BY sales DESC）<br>
+          <b>过滤</b>：本月（WHERE o.month = '2026-07'）<br>
+          <span style="color:#7a4dff">→ 只输出参数，不写 SQL，不关心表结构</span>
+        </p>
+      </div>
+      <div class="card" style="padding:6px 10px;border-left:3px solid #12a06a">
+        <h4 style="font-size:14px;margin-bottom:2px;color:#12a06a">③ 语义层 · 翻译查询</h4>
+        <p class="dim" style="font-size:11px;line-height:1.5">
+          语义层按预定义关系自动关联表、翻译 SQL：<br>
+          <code style="font-size:10px;display:block;margin-top:3px;padding:4px 6px;background:rgba(0,0,0,.04);border-radius:4px;line-height:1.4">
+          SELECT p.name, SUM(o.amount) AS sales<br>
+          FROM dw.dwd_order_info o<br>
+          JOIN dw.dim_product p ON o.product_id = p.id<br>
+          WHERE o.month = '2026-07'<br>
+          GROUP BY p.name<br>
+          ORDER BY sales DESC<br>
+          LIMIT 3</code>
+          <span style="color:#12a06a">→ 指标与 Join 关系预定义，同一问题永远同一查询</span>
+        </p>
+      </div>
+    </div>
+    <div class="stack" style="gap:5px">
+      <div class="card" style="padding:6px 10px;border-left:3px solid #12a06a">
+        <h4 style="font-size:14px;margin-bottom:2px;color:#12a06a">④ 权限过滤 · 受控查询</h4>
+        <p class="dim" style="font-size:12px;line-height:1.5">
+          按用户身份自动注入权限：<br>
+          示例：用户只能看「华东」「华南」<br>
+          <code style="font-size:10px;display:block;margin-top:3px;padding:4px 6px;background:rgba(0,0,0,.04);border-radius:4px;line-height:1.4">
+          SELECT p.name, SUM(o.amount) AS sales<br>
+          FROM dw.dwd_order_info o<br>
+          JOIN dw.dim_product p ON o.product_id = p.id<br>
+          WHERE o.month = '2026-07'<br>
+          <b style="color:#12a06a">AND o.region IN ('华东','华南')</b><br>
+          GROUP BY p.name<br>
+          ORDER BY sales DESC<br>
+          LIMIT 3</code>
+          <span style="color:#12a06a">→ 权限由语义层强制执行，不受 LLM 行为影响</span>
+        </p>
+      </div>
+      <div class="card" style="padding:6px 10px">
+        <h4 style="font-size:14px;margin-bottom:2px">⑤ 返回结果</h4>
+        <table style="width:100%;font-size:11px;border-collapse:collapse;margin-top:3px">
+          <tr style="border-bottom:1px solid var(--border)"><th style="text-align:left;padding:2px 4px">产品</th><th style="text-align:right;padding:2px 4px">销售额</th></tr>
+          <tr><td style="padding:2px 4px">羽绒服</td><td style="text-align:right;padding:2px 4px">¥186 万</td></tr>
+          <tr><td style="padding:2px 4px">运动鞋</td><td style="text-align:right;padding:2px 4px">¥142 万</td></tr>
+          <tr><td style="padding:2px 4px">智能手机</td><td style="text-align:right;padding:2px 4px">¥98 万</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="notes">我们通过一个具体案例走一遍完整链路。用户问"本月销售额前三的产品是哪些"。LLM 层做语义解析——把自然语言拆成结构化参数：指标是销售额，维度是产品，按销售额降序排，限定本月数据。只给参数不写 SQL。语义层拿到参数，结合预定义的指标定义和表关系，翻译成正确的 SQL——同一个问题永远同一个查询。然后权限层自动注入用户能看的数据范围，比如只让看华东和华南。最终返回前三名。整个过程，LLM 不知道表结构，也不会越权——这就是语义模型架构的核心优势。接下来看<b>图表工具</b>。</div>
+<div class="deck-footer"><span class="dim2">数据应用部 · 苏焕雄</span><span class="slide-number" data-current="16" data-total="25"></span></div>
 </section>
 
 <!-- ════════════════════════════════════════════  图表工具  ═══════════════════ -->
@@ -514,13 +586,13 @@ h2.h2{font-size:64px!important}h4{font-size:24px!important}
     <p class="lede mt-l">AI 风控官的画图工具，嵌在 Agent 身上——Agent 发现需要画图就自动调用，<br>拿到数据+意图，自动选合适的图、配好坐标轴，直接画在回答里。</p>
   </div>
   <div class="notes">第五个模块——<b>图表工具</b>。非常简单：给数据一句话，自动出一张图。它是嵌在 Agent 身上的工具，Agent 发现需要画图就自动调，不用人手动触发。那为什么需要图表工具？翻下一页。</div>
-<div class="deck-footer"><span class="dim2">数据应用部 · 苏焕雄</span><span class="slide-number" data-current="16" data-total="24"></span></div>
+<div class="deck-footer"><span class="dim2">数据应用部 · 苏焕雄</span><span class="slide-number" data-current="17" data-total="25"></span></div>
 </section>
 
 <!-- 6.2 图表工具 - 为什么需要 -->
 <section class="slide" data-title="图表工具 · 为什么">
   <div class="deck-header"><span>AI 风控官 · 图表工具</span></div>
-  <p class="kicker">第 1 步 · 先看为什么需要</p>
+  <p class="kicker">01 · 先看为什么需要</p>
   <h2 class="h2">甩一张大表，谁看得过来？</h2>
   <p class="lede">数据查出来往往是几十行数字，密密麻麻，看完不知道重点在哪、更看不出趋势。自动画成图，结论一眼就清楚。</p>
   <div class="grid g2 mt-m">
@@ -549,13 +621,13 @@ h2.h2{font-size:64px!important}h4{font-size:24px!important}
     </div>
   </div>
   <div class="notes">为什么要画图？看左边，甩一张大表几十行数字，密密麻麻，谁看得过来？重点在哪、涨跌趋势，全看不出来。右边自动画成图，趋势一眼就看清楚了。接下来看具体流程。</div>
-<div class="deck-footer"><span class="dim2">数据应用部 · 苏焕雄</span><span class="slide-number" data-current="17" data-total="24"></span></div>
+<div class="deck-footer"><span class="dim2">数据应用部 · 苏焕雄</span><span class="slide-number" data-current="18" data-total="25"></span></div>
 </section>
 
 <!-- 6.3 图表工具 - 流程 SVG -->
 <section class="slide" data-title="图表工具 · 流程">
   <div class="deck-header"><span>AI 风控官 · 图表工具</span></div>
-  <p class="kicker">第 1-2 步 · 为什么需要 + 工作流程</p>
+  <p class="kicker">02 · 一张图看懂流程</p>
   <h2 class="h2">从"数据+一句话"到"一张图"</h2>
   <div style="max-width:900px;width:100%;align-self:center">
     <svg viewBox="0 0 786 300" style="width:100%;height:auto;display:block" font-family="system-ui, -apple-system, 'PingFang SC', sans-serif">
@@ -596,13 +668,13 @@ h2.h2{font-size:64px!important}h4{font-size:24px!important}
     </svg>
   </div>
   <div class="notes">这张图四个步骤：①数据加意图，比如表格加"按月看趋势"，Agent 自动调用；②<b>选图小专家</b>——LLM 只看抽样五行加意图，输出出图规则；③<b>生成图表配置</b>——程序按规则处理全量数据，不调 LLM，快；④嵌进回答，前端渲染交互图。关键设计：<b>LLM 只看抽样，全量数据由程序处理</b>，又快又不会撑爆上下文。翻下一页看设计亮点。</div>
-<div class="deck-footer"><span class="dim2">数据应用部 · 苏焕雄</span><span class="slide-number" data-current="18" data-total="24"></span></div>
+<div class="deck-footer"><span class="dim2">数据应用部 · 苏焕雄</span><span class="slide-number" data-current="19" data-total="25"></span></div>
 </section>
 
 <!-- 6.3 图表工具 - 亮点 -->
 <section class="slide" data-title="图表工具 · 亮点">
   <div class="deck-header"><span>AI 风控官 · 图表工具</span></div>
-  <p class="kicker">第 3 步 · 两个亮点</p>
+  <p class="kicker">03 · 两个亮点</p>
   <h2 class="h2">它比"画个图"多做了什么</h2>
   <div class="grid g2 mt-m">
     <div class="card card-accent">
@@ -615,7 +687,7 @@ h2.h2{font-size:64px!important}h4{font-size:24px!important}
     </div>
   </div>
   <div class="notes">两个亮点：第一<b>自动选图</b>——选图小专家只看抽样加意图就输出出图规则，说人话就行；第二<b>不撑爆上下文</b>——LLM只喂抽样，全量数据由程序处理，不进模型上下文。好，最后一个模块——<b>卡片工具</b>。</div>
-<div class="deck-footer"><span class="dim2">数据应用部 · 苏焕雄</span><span class="slide-number" data-current="19" data-total="24"></span></div>
+<div class="deck-footer"><span class="dim2">数据应用部 · 苏焕雄</span><span class="slide-number" data-current="20" data-total="25"></span></div>
 </section>
 
 <!-- ════════════════════════════════════════════  卡片工具  ═══════════════════ -->
@@ -628,13 +700,13 @@ h2.h2{font-size:64px!important}h4{font-size:24px!important}
     <p class="lede mt-l">AI 风控官的卡片工具：Agent 拿到客商零散信息，<br>自动排成一张张看得懂的卡片，像股票App里的个股概览，直接渲染在回答里。</p>
   </div>
   <div class="notes">最后一个模块——<b>卡片工具</b>。和图表工具类似，嵌在 Agent 身上的工具。功能很简单：把零散的客商数据自动排成一张张看得懂的卡片，像股票App里的个股概览。为什么需要卡片工具？翻下一页。</div>
-<div class="deck-footer"><span class="dim2">数据应用部 · 苏焕雄</span><span class="slide-number" data-current="20" data-total="24"></span></div>
+<div class="deck-footer"><span class="dim2">数据应用部 · 苏焕雄</span><span class="slide-number" data-current="21" data-total="25"></span></div>
 </section>
 
 <!-- 7.2 卡片工具 - 为什么需要 -->
 <section class="slide" data-title="卡片工具 · 为什么">
   <div class="deck-header"><span>AI 风控官 · 卡片工具</span></div>
-  <p class="kicker">第 1 步 · 先看为什么需要</p>
+  <p class="kicker">01 · 先看为什么需要</p>
   <h2 class="h2">一段密密麻麻的文字，谁看得下去？</h2>
   <p class="lede">客商信息查出来往往是一大段文字，重点混在里面、不好找。自动排成卡片——大数字、单位、涨跌、关键字段一目了然。</p>
   <div class="grid g2 mt-m">
@@ -673,13 +745,13 @@ h2.h2{font-size:64px!important}h4{font-size:24px!important}
     </div>
   </div>
   <div class="notes">为什么需要？客商信息查出来是一大段文字，资金余额利润率签约全挤在一起，读不进去。排成卡片就不一样了——大数字加单位、涨跌箭头，一眼看清。接下来看工作流程。</div>
-<div class="deck-footer"><span class="dim2">数据应用部 · 苏焕雄</span><span class="slide-number" data-current="21" data-total="24"></span></div>
+<div class="deck-footer"><span class="dim2">数据应用部 · 苏焕雄</span><span class="slide-number" data-current="22" data-total="25"></span></div>
 </section>
 
 <!-- 7.3 卡片工具 - 流程 SVG -->
 <section class="slide" data-title="卡片工具 · 流程">
   <div class="deck-header"><span>AI 风控官 · 卡片工具</span></div>
-  <p class="kicker">第 2 步 · 一张图看懂流程</p>
+  <p class="kicker">02 · 一张图看懂流程</p>
   <h2 class="h2">从"零散数据"到"一张卡片"</h2>
   <div style="max-width:900px;width:100%;align-self:center">
     <svg viewBox="0 0 786 250" style="width:100%;height:auto;display:block" font-family="system-ui, -apple-system, 'PingFang SC', sans-serif">
@@ -713,16 +785,15 @@ h2.h2{font-size:64px!important}h4{font-size:24px!important}
     </svg>
   </div>
   <div class="notes">四个步骤：①零散数据进来——名称、指标、基本情况；②<b>归一化清洗</b>——空值补横杠、方向格式纠错，保证数据干净；③按模板生成卡片配置，结构化 JSON；④嵌进回答，前端渲染。支持两种卡片：<b>核心指标卡组</b>和<b>企业名片</b>，字段缺失有兜底。翻下一页看业务价值。</div>
-<div class="deck-footer"><span class="dim2">数据应用部 · 苏焕雄</span><span class="slide-number" data-current="22" data-total="24"></span></div>
+<div class="deck-footer"><span class="dim2">数据应用部 · 苏焕雄</span><span class="slide-number" data-current="23" data-total="25"></span></div>
 </section>
 
 <!-- 7.3 卡片工具 - 业务价值 -->
 <section class="slide" data-title="卡片工具 · 价值">
   <div class="deck-header"><span>AI 风控官 · 卡片工具</span></div>
-  <p class="kicker">第 3 步 · 业务价值</p>
-  <h2 class="h2">对我们的业务，意味着什么？</h2>
-  <p class="lede">卡片工具让客商信息从"一大段文字"变成"一眼能懂的卡片"——风控、审批、汇报都能直接用。</p>
-  <div class="grid g3 mt-m">
+  <p class="kicker">03 · 两个亮点</p>
+  <h2 class="h2">两个亮点</h2>
+  <div class="grid g2 mt-m">
     <div class="card card-accent">
       <h4>📇 一眼看清重点</h4>
       <p class="dim" style="font-size:13px">大数字、单位、涨跌箭头、实际控制人，关键信息一眼到位，不用逐字读长文。</p>
@@ -731,13 +802,9 @@ h2.h2{font-size:64px!important}h4{font-size:24px!important}
       <h4>🧱 排版稳定统一</h4>
       <p class="dim" style="font-size:13px">按固定模板排，不会因模型多说少说几句就乱——对外汇报口径一致、专业。</p>
     </div>
-    <div class="card card-accent">
-      <h4>🛡️ 稳：缺了错了有兜底</h4>
-      <p class="dim" style="font-size:13px">字段缺失、格式错误都会被清洗兜底，卡片总渲染得出来，不会画崩。</p>
-    </div>
   </div>
-  <div class="notes">卡片工具三个业务价值：<b>一眼看清重点</b>——大数字单位涨跌箭头关键字段；<b>排版稳定统一</b>——按固定模板排不乱；<b>缺了错了有兜底</b>——字段缺失格式错误都会清洗兜底，卡片总渲染得出来。</div>
-<div class="deck-footer"><span class="dim2">数据应用部 · 苏焕雄</span><span class="slide-number" data-current="23" data-total="24"></span></div>
+  <div class="notes">卡片工具两个亮点：<b>一眼看清重点</b>——大数字单位涨跌箭头关键字段；<b>排版稳定统一</b>——按固定模板排不乱，对外汇报口径一致专业。</div>
+<div class="deck-footer"><span class="dim2">数据应用部 · 苏焕雄</span><span class="slide-number" data-current="24" data-total="25"></span></div>
 </section>
 
 <!-- ════════════════════════════════════════════  THANKS  ══════════════════════ -->
@@ -748,7 +815,7 @@ h2.h2{font-size:64px!important}h4{font-size:24px!important}
     <p class="kicker mt-l">数据应用部 · 苏焕雄</p>
   </div>
   <div class="notes">好，以上就是今天分享的六个模块。Agent Loop——一个循环加一个工具等于一个Agent；主子Agent——统筹派活分域专家会诊；Skill——先给目录用到才翻；语义模型——治理锚点加灵活补充；图表工具——给数据一句话自动出图；卡片工具——零散数据自动排成卡片。希望对大家理解 AI Agent 架构有帮助。谢谢！</div>
-<div class="deck-footer"><span class="dim2">数据应用部 · 苏焕雄</span><span class="slide-number" data-current="24" data-total="24"></span></div>
+<div class="deck-footer"><span class="dim2">数据应用部 · 苏焕雄</span><span class="slide-number" data-current="25" data-total="25"></span></div>
 </section>
 
 </div>
